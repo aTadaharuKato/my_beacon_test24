@@ -66,7 +66,19 @@ class MyHomePage extends StatelessWidget {
                       Log.t('ネイティブ呼び出しで例外が発生しました. $e');
                     }
                   },
-                  child: Text('ビーコンスキャン開始'))
+                  child: Text('ビーコンスキャン開始')
+                ),
+                OutlinedButton(
+                  onPressed: () async {
+                    try {
+                      var ret = await MyController.platform.invokeMethod('stop_beacon_scan');
+                      Log.t('ret: $ret');
+                    } catch (e) {
+                      Log.t('ネイティブ呼び出しで例外が発生しました. $e');
+                    }
+                  },
+                  child: Text('ビーコンスキャン停止')
+                ),
               ],
             ),
           ),
