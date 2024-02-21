@@ -79,6 +79,17 @@ class MyHomePage extends StatelessWidget {
                   },
                   child: Text('ビーコンスキャン停止')
                 ),
+                OutlinedButton(
+                    onPressed: () async {
+                      try {
+                        var ret = await MyController.platform.invokeMethod('test_notification');
+                        Log.t('ret: $ret');
+                      } catch (e) {
+                        Log.t('ネイティブ呼び出しで例外が発生しました. $e');
+                      }
+                    },
+                    child: Text('通知テスト')
+                ),
               ],
             ),
           ),
