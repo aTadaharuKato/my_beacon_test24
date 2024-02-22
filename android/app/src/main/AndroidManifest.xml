@@ -24,7 +24,9 @@
     <!-- アプリがすでにペア設定されている Bluetooth デバイスと通信する場合は、アプリのマニフェストに BLUETOOTH_CONNECT 権限を追加します。 -->
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <!-- Bluetooth Low Energy（BLE）周辺機器など、アプリが Bluetooth デバイスを探す場合は、アプリのマニフェストに BLUETOOTH_SCAN 権限を追加します。 -->
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
+        tools:remove="android:usesPermissionFlags" />
+    />
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.INTERNET"/>

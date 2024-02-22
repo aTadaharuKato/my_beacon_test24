@@ -70,7 +70,7 @@ dependencies {
     // (KATO) PreferenceManager が @Deprecated なので，AndroidX Preference Library を使う.
     implementation 'androidx.preference:preference-ktx:1.2.1'
     // android beacon library
-    implementation 'org.altbeacon:android-beacon-library:2.19.6'
+    implementation 'org.altbeacon:android-beacon-library:2.20.4'
 }
 
 // (KATO), Exception failed for task ':app:checkDebugDuplicateClasses'. 回避の記述

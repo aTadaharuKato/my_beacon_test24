@@ -6,17 +6,24 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.util.Log
+import org.altbeacon.beacon.Beacon
 import org.altbeacon.beacon.BeaconManager
 import org.altbeacon.beacon.BeaconParser
+import org.altbeacon.beacon.Identifier
 import org.altbeacon.beacon.MonitorNotifier
+import org.altbeacon.beacon.RangeNotifier
 import org.altbeacon.beacon.Region
+import java.util.UUID
 
-object HappyPathManager : MonitorNotifier {
+object HappyPathManager : MonitorNotifier, RangeNotifier {
 
     var curPreferences: SharedPreferences? = null
     var fBeaconMonitoring = false
     private var fStarted = false
-    private var myBeaconRegionList = listOf(Region("region-all", null, null, null))
+    private var myBeaconRegionList = listOf(
+        //Region("region-all", null, null, null),
+        Region("APZ-110", Identifier.parse("C722DB4C-5D91-1801-BEB5-001C4DE7B3FD"), null, null),
+    )
     var curContext: Any? = null
 
     init {
@@ -104,12 +111,15 @@ object HappyPathManager : MonitorNotifier {
                 // ---
                 Log.i(Const.TAG, "MainActivity#onCreate() アプリでバックグラウンド監視を設定します.")
                 beaconManager.addMonitorNotifier(this)
+                beaconManager.addRangeNotifier(this)
+
 
                 // このアプリの最後の実行で *異なる* リージョンを監視していた場合、それらは記憶されます。
                 // この場合、ここでそれらを無効にする必要があります。
                 beaconManager.monitoredRegions.forEach {
                     Log.i(Const.TAG, "MainActivity#onCreate() stopMonitoring($it)")
                     beaconManager.stopMonitoring(it)
+                    beaconManager.stopRangingBeacons(it)
                 }
 
                 Log.i(Const.TAG, "Foreground Scan Period: ${beaconManager.foregroundScanPeriod}")
@@ -123,6 +133,7 @@ object HappyPathManager : MonitorNotifier {
                 // removeMonitoreNotifier を使用して通知機能を登録解除します。
                 myBeaconRegionList.forEach { targetRegion ->
                     beaconManager.startMonitoring(targetRegion)
+                    beaconManager.startRangingBeacons(targetRegion)
                 }
                 fBeaconMonitoringChange(true)
             }
@@ -138,6 +149,7 @@ object HappyPathManager : MonitorNotifier {
             if (beaconManager.isAnyConsumerBound) {
                 myBeaconRegionList.forEach { region ->
                     beaconManager.stopMonitoring(region)
+                    beaconManager.stopRangingBeacons(region)
                 }
             }
             Log.i(Const.TAG, "beaconManager.isAnyConsumerBound: ${beaconManager.isAnyConsumerBound} AFTER")
@@ -148,6 +160,10 @@ object HappyPathManager : MonitorNotifier {
 
     override fun didEnterRegion(region: Region?) {
         Log.i(Const.TAG, "HappyPathManager#didEnterRegion() - 領域に入りました. $region")
+        /*
+        region?.also { region ->
+            Log.i(Const.TAG, "bluetoothAddress:${region.bluetoothAddress}, id1:${region.id1}, id2:${region.id2}, id3:${region.id3}")
+        }*/
     }
 
     override fun didExitRegion(region: Region?) {
@@ -156,6 +172,32 @@ object HappyPathManager : MonitorNotifier {
 
     override fun didDetermineStateForRegion(state: Int, region: Region?) {
         Log.i(Const.TAG, "HappyPathManager#didDetermineStateForRegion(state:$state, region:$region)")
+    }
+
+    override fun didRangeBeaconsInRegion(beacons: MutableCollection<Beacon>?, region: Region?) {
+        Log.i(Const.TAG, "HappyPathManager#didRangeBeaconsInRegion(beacons:$beacons, region:$region)")
+        beacons?.forEach {beacon ->
+            Log.i(Const.TAG, "beacon:$beacon")
+
+            Log.i(Const.TAG, "bluetoothAddress:${beacon.bluetoothAddress}, id1:${beacon.id1}, id2:${beacon.id2}, id3:${beacon.id3}, ")
+            val svc = beacon.id1.toUuid()
+            val ex1 = UUID.fromString("C722DB4C-5D91-1801-BEB5-001C4DE7B3FD")
+            if (svc == ex1) {
+                // 温湿度気圧センサ APZ-110 の場合，
+                val major = beacon.id2.toInt();
+                val minor = beacon.id3.toInt();
+                Log.i(Const.TAG, "major:$major, (0x${HexDump.IntToHexString(major)}), minor:$minor, (0x${HexDump.IntToHexString(minor)})")
+
+                val u = (major shr 4) and 0x3FF
+                val v = ((major shl 3) or (minor shr 13)) and 0x7F
+                val w = minor and 0x1FFF
+
+                val Rt = 0.1 * u.toDouble() - 30.0
+                val Rh = v
+                val Rp = 0.1 * w.toDouble() + 300.0
+                Log.i(Const.TAG, "温度: $Rt [℃], 湿度: $Rh [%], 気圧: $Rp [hPa]")
+            }
+        }
     }
 
 }
