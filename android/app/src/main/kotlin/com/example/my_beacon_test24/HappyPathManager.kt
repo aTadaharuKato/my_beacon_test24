@@ -6,6 +6,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.util.Log
+import com.example.my_beacon_test24.KDevice
+import com.google.gson.GsonBuilder
+import com.google.gson.annotations.SerializedName
 import org.altbeacon.beacon.Beacon
 import org.altbeacon.beacon.BeaconManager
 import org.altbeacon.beacon.BeaconParser
@@ -15,16 +18,33 @@ import org.altbeacon.beacon.RangeNotifier
 import org.altbeacon.beacon.Region
 import java.util.UUID
 
+data class KDevice (
+    @SerializedName("ble_addr")
+    val bleAddr: String,
+
+    @SerializedName("nickname")
+    val nickname: String,
+)
+
+data class KDevices (
+    @SerializedName("devices")
+    val devices: List<KDevice>,
+)
+
 object HappyPathManager : MonitorNotifier, RangeNotifier {
 
-    var curPreferences: SharedPreferences? = null
-    var fBeaconMonitoring = false
+    private var curPreferences: SharedPreferences? = null
+    private var fBeaconMonitoring = false
     private var fStarted = false
     private var myBeaconRegionList = listOf(
         //Region("region-all", null, null, null),
         Region("APZ-110", Identifier.parse("C722DB4C-5D91-1801-BEB5-001C4DE7B3FD"), null, null),
     )
     var curContext: Any? = null
+
+    var sensors = KDevices(emptyList<KDevice>())
+
+    var lasNotifyTick = 0L
 
     init {
         Log.i(Const.TAG, "HappyPathManager#init BEGIN")
@@ -40,6 +60,25 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
             val all = preferences.all
             Log.i(Const.TAG, "Preference/不揮発性メモリに格納された変数:$all")
             fSavedBeaconMonitoring = (all["fBeaconMonitoring"] as Boolean?) ?: false
+
+            val myJson = GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").create()
+
+            try {
+                (all["devices"] as String?)?.also {devicesJsonStr ->
+                    val v = myJson.fromJson(Const.base64Decode(devicesJsonStr), KDevices::class.java)
+                    Log.i(Const.TAG, "v:$v")
+                    sensors = v
+                }
+            } catch (e: Exception) {
+                Log.i(Const.TAG, "例外がおきました!!")
+                Log.i(Const.TAG, e.stackTraceToString())
+            }
+
+            // 登録デバイスの一覧をログ表示.
+            sensors.devices.forEach { device ->
+                val x = myJson.toJson(device)
+                Log.i(Const.TAG, "x:$x")
+            }
         }
         Log.i(Const.TAG, "HappyPathManager#prepare($preferences) DONE")
         return fSavedBeaconMonitoring
@@ -61,6 +100,8 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
 
     fun iBeaconScanStart() {
         Log.i(Const.TAG, "HappyPathManager#iBeaconScanStart() BEGIN")
+
+        lasNotifyTick = 0
 
         (curContext as? Context)?.also { context ->
 
@@ -176,6 +217,13 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
 
     override fun didRangeBeaconsInRegion(beacons: MutableCollection<Beacon>?, region: Region?) {
         Log.i(Const.TAG, "HappyPathManager#didRangeBeaconsInRegion(beacons:$beacons, region:$region)")
+
+        var curtick = System.currentTimeMillis()
+        var elapsed = curtick - lasNotifyTick
+        if (elapsed < Const.MIN_NOTIFY_INTERVAL_MILLIS) {
+            Log.i(Const.TAG, "elapsed $elapsed mills, skip this data")
+        }
+
         beacons?.forEach {beacon ->
             Log.i(Const.TAG, "beacon:$beacon")
 
@@ -195,7 +243,20 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
                 val Rt = 0.1 * u.toDouble() - 30.0
                 val Rh = v
                 val Rp = 0.1 * w.toDouble() + 300.0
-                Log.i(Const.TAG, "温度: $Rt [℃], 湿度: $Rh [%], 気圧: $Rp [hPa]")
+                //Log.i(Const.TAG, "温度: $Rt [℃], 湿度: $Rh [%], 気圧: $Rp [hPa]")
+
+                var s = String.format("温度: %.1f [℃], 湿度: %d [%%], 気圧: %.1f [hPa])", Rt, Rh, Rp)
+                Log.i(Const.TAG, s)
+                (curContext as? MyNativeMsgSender)?.sendNativeMessage(mapOf(
+                    "api" to "notify_sensor_data",
+                    "data" to mapOf(
+                        "temperature" to Rt,
+                        "humidity" to Rh,
+                        "pressure" to Rp,
+                        "device" to beacon.bluetoothAddress,
+                    ),
+                ))
+                lasNotifyTick = curtick
             }
         }
     }

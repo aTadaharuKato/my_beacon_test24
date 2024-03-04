@@ -14,17 +14,19 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 import org.altbeacon.beacon.Region
 
-class MainActivity: FlutterActivity() {
+class MainActivity: FlutterActivity(), MyNativeMsgSender {
     companion object {
     }
 
     var eventSink : EventChannel.EventSink?  = null
+    private var fDestroyed = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.i(Const.TAG, "MainActivity#onCreate() BEGIN")
         super.onCreate(savedInstanceState)
         HappyPathManager.curContext = this
 
+        // 通知チャンネルの準備.
         getMyForegroundServiceNotificationChannel();
         getMyRegionNotificationChannel();
 
@@ -61,7 +63,6 @@ class MainActivity: FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         Log.i(Const.TAG, "MainActivity#configureFlutterEngine() BEGIN")
         super.configureFlutterEngine(flutterEngine)
-
         val preferences = PreferenceManager.getDefaultSharedPreferences(this)
         HappyPathManager.prepare(this, preferences)
 
@@ -69,6 +70,17 @@ class MainActivity: FlutterActivity() {
             Log.i(Const.TAG, "ネイティブメソッド呼出ハンドラ, method=${call.method} BEGIN")
             try {
                 when (call.method) {
+                    "create_dummy_data" -> {
+                        val jsonstr = call.arguments<String>()
+                        Log.i(Const.TAG, "jsonstr:$jsonstr");
+                        jsonstr?.also {jsonstr ->
+                            preferences.edit().also { edit ->
+                                edit.putString("devices", Const.base64Encode(jsonstr))
+                                edit.apply()
+                            }
+                        }
+                        result.success(12345)
+                    }
                     "start_beacon_scan" -> {
                         HappyPathManager.iBeaconScanStart();
                         result.success(56789)
@@ -105,6 +117,8 @@ class MainActivity: FlutterActivity() {
             override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
                 Log.i(Const.TAG, "streamHandler#onListen() BEGIN")
                 eventSink = events
+
+                //val notifyDevices = mapOf("api" to "notify_devices")
 
                 val myMap = mapOf ("api" to "Hello, World!")
                 runOnUiThread {
@@ -158,5 +172,15 @@ class MainActivity: FlutterActivity() {
             notificationManager.createNotificationChannel(channel)
         }
         return channel
+    }
+
+    override fun sendNativeMessage(arg: Any?) {
+        Log.i(Const.TAG, "MainActivity#sendNativeMessage($arg) BEGIN")
+        if (!fDestroyed) {
+            runOnUiThread {
+                eventSink?.success(arg)
+            }
+        }
+        Log.i(Const.TAG, "MainActivity#sendNativeMessage($arg) DONE")
     }
 }

@@ -71,6 +71,9 @@ dependencies {
     implementation 'androidx.preference:preference-ktx:1.2.1'
     // android beacon library
     implementation 'org.altbeacon:android-beacon-library:2.20.4'
+    // gson
+    implementation 'com.google.code.gson:gson:2.10.1'
+
 }
 
 // (KATO), Exception failed for task ':app:checkDebugDuplicateClasses'. 回避の記述
