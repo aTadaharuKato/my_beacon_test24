@@ -15,22 +15,109 @@ class MyHomeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    log.t('🍓🍓MyWidget1#build() BEGIN');
+    log.t('🍓MyWidget1#build() BEGIN');
     final size = MediaQuery.of(context).size;
     var ret = SingleChildScrollView(
       child: Container(
         width: double.infinity,
         margin: const EdgeInsets.all(8),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('温湿度気圧センサの現在値'),
+            const Text('センサのスキャン状態', style: TextStyle(fontSize: 18)),
+            Row(
+              children: [
+                const Spacer(),
+                Flexible(
+                  flex: 19,
+                  child: Row(
+                    children: [
+                      Obx(() => Switch(
+                        value: Get.find<MyController>().fBeaconScanning.value,
+                        onChanged: (v) async {
+                          log.t('🍓ビーコンスキャンスイッチが変更されました, v:$v');
+                          if (Get.find<MyController>().fBeaconScanning.value != v) {
+                            try {
+                              int? ret;
+                              if (v) {
+                                ret = await MyController.platform.invokeMethod('start_beacon_scan');
+                              } else {
+                                ret = await MyController.platform.invokeMethod('stop_beacon_scan');
+                              }
+                              log.t('ret: $ret');
+                              Get.find<MyController>().fBeaconScanning.value = v;
+                            } catch (e) {
+                              log.t('ネイティブ呼び出しで例外が発生しました. $e');
+                            }
+                          }
+                        },
+                      )),
+                      Obx(() => Text(Get.find<MyController>().fBeaconScanning.value ? 'ON' : 'OFF')
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
 
-            Obx(() {
-              var deviceSet = Get.find<MyController>().deviceset.value;
-              var numberOfDevices =deviceSet.getNumberOfDevices();
+            const SizedBox(height: 32),
+            const Text('センサの現在値', style: TextStyle(fontSize: 18)),
+
+            GetBuilder<MyController>(builder: (controller) {
+              log.t('🍎🍎🍎🍎 MyHomeWidget');
+              var deviceSet = controller.myDeviceSet.value;
+              var validDeviceList = deviceSet.getValidDevices();
+              var validNumberOfDevices = validDeviceList.length;
+
               return Column(
-                children: List.generate(numberOfDevices, (index) {
+                children: List.generate(validNumberOfDevices, (index) {
+                  // それぞれのデバイスについての情報を表示する.
+                  //var device = deviceSet.devices!.elementAt(index);
+                  var device = validDeviceList.elementAt(index);
+
+                  var strTemperature = '温度: --.- ℃';
+                  if (device.isTheTemperatureAvailable()) {
+                    strTemperature = '温度: ${device.getTemperature()} ℃';
+                  }
+
+                  var strHumidity = '湿度: -- %';
+                  if (device.isTheHumidityAvailable()) {
+                    strHumidity = '湿度: ${device.getHumidity()} %';
+                  }
+
+                  var strPressure = '気圧: ---.- hPa';
+                  if (device.isThePressureAvailable()) {
+                    strPressure = '気圧: ${device.getPressure()} hPa';
+                  }
+
+                  return Card(
+                      child: Column(
+                        children: [
+                          ListTile(
+                            title: Text('センサ名: ${device.nickname}'),
+                            subtitle: Text('BDADDR: ${device.bleAddr}'),
+                          ),
+                          Text(strTemperature),
+                          Text(strHumidity),
+                          Text(strPressure),
+                        ],
+                      )
+                  );
+                }),
+              );
+
+            }),
+
+/*
+            Obx(() {
+              var deviceSet = Get.find<MyController>().myDeviceSet.value;
+              //var numberOfDevices =deviceSet.getNumberOfDevices();
+
+              var validDeviceList = deviceSet.getValidDevices();
+              var validNumberOfDevices = validDeviceList.length;
+
+              return Column(
+                children: List.generate(validNumberOfDevices, (index) {
                   // それぞれのデバイスについての情報を表示する.
                   var device = deviceSet.devices!.elementAt(index);
 
@@ -66,27 +153,32 @@ class MyHomeWidget extends StatelessWidget {
               );
             }),
 
+ */
 
+            // -----------------------------------------------------------------------------------------
+            // テスト用のテキストフィールドの定義.
             Row(
               children: [
-                Spacer(),
+                const Spacer(),
                 Flexible(
                   flex: 10,
-                  child: Obx(() => TextField(decoration: InputDecoration(labelText: '生のテキスト'),
-                    controller: Get.find<MyController>().textedit_controller,
+                  child: Obx(() => TextField(decoration: const InputDecoration(labelText: '生のテキスト'),
+                    controller: Get.find<MyController>().myTextFieldController,
                     keyboardType: TextInputType.text,
-                    enabled: Get.find<MyController>().f_textedit_enable.value,
+                    enabled: Get.find<MyController>().fMyTextFieldEnable.value,
                     onChanged: (text) {
-                      print('text: $text');
+                      log.t('🍓テキストフィールドが変更されました. text: $text');
                       Codec<String, String> stringToBase64 = utf8.fuse(base64);
-                      var outtext = stringToBase64.encode(text);
-                      Get.find<MyController>().output_text.value = outtext;
+                      var encodedText = stringToBase64.encode(text);
+                      Get.find<MyController>().myEncodedText.value = encodedText;
                     },
                   )),
                 ),
               ],
             ),
-            Row(
+
+            // テキストフィールドに入力された文字を base64 エンコードした文字列を表示する.
+            const Row(
               children: [
                 Spacer(),
                 Flexible(
@@ -97,103 +189,81 @@ class MyHomeWidget extends StatelessWidget {
             ),
             Row(
               children: [
-                Spacer(),
+                const Spacer(),
                 Flexible(
                   flex:10,
-                  child: Obx(() => Text(Get.find<MyController>().output_text.value)),
+                  child: Obx(() => Text(Get.find<MyController>().myEncodedText.value)),
                 ),
               ],
             ),
 
+            // テキストフィールドの文字列を，SharedPreferences に，キーワード: keyword で保存.
             OutlinedButton(
               onPressed: () async {
                 var prefs = await SharedPreferences.getInstance();
-                var text = Get.find<MyController>().textedit_controller.text;
-                log.t('text: $text');
+                var text = Get.find<MyController>().myTextFieldController.text;
+                log.t('🍓テキストを SharedPreferences に保存します. text: $text');
                 prefs.setString('keyword', text);
               },
-              child: Text('SharedPreferences Store'),
+              child: const Text('SharedPreferences 保存'),
             ),
+
+            // SharedPreferences からキーワード: keyword で読み込み，テキストフィールドに設定します.
             OutlinedButton(
               onPressed: () async {
                 var prefs = await SharedPreferences.getInstance();
                 var text = prefs.getString('keyword') ?? '';
-                log.t('text: $text');
-                Get.find<MyController>().textedit_controller.text = text;
+                log.t('🍓text: $text');
+                Get.find<MyController>().myTextFieldController.text = text;
               },
-              child: Text('SharedPreferences Load')),
-            OutlinedButton(
-              onPressed: () async {
-                var directory = await getApplicationDocumentsDirectory();
-                log.t('directory: $directory');
-                var file = File('${directory.path}/hoge.txt');
-                if (!await file.exists()) {
-                  await file.create();
-                } else {
-                }
-              },
-              child: Text('Save File')
-            ),
-            OutlinedButton(
-                onPressed: () async {
-                  log.t('Button pressed.');
-                  try {
-                    var ret = await MyController.platform.invokeMethod('create_dummy_data',
-                    '''
-                    {"devices":[{"ble_addr":"01:23:45:67:89:AB","nickname":"ジャイアン"},{"ble_addr":"CD:EF:01:23:45:67","nickname":"スネオ"}]}
-                    '''
-                    );
-                    log.t('ret: $ret');
-                  } catch (e) {
-                    log.t('ネイティブ呼び出しで例外が発生しました. $e');
-                  }
-                },
-                child: Text('ダミーデータ作成 (Native)'),
-            ),
+              child: const Text('SharedPreferences 読込')),
 
+            // SharedPreferences に，デバイスを定義したダミーデータを登録します.
             OutlinedButton(
               onPressed: () async {
-                var src = '''
-                    {"devices":[{"ble_addr":"01:23:45:67:89:AB","nickname":"ジャイアン"},{"ble_addr":"CD:EF:01:23:45:67","nickname":"スネオ"}]}
+                var text = '''
+                    {"devices":[{"ble_addr":"00:1C:4D:40:64:69","nickname":"ジャイアン"},{"ble_addr":"CD:EF:01:23:45:67","nickname":"スネオ"},{"ble_addr":"11:22:33:44:55:66","nickname":"のび太","show_flag":true}]}
                     '''.trim();
-                log.t('src:$src');
+                log.t('🍓ダミーデータの Json テキスト, text:$text');
                 Codec<String, String> stringToBase64 = utf8.fuse(base64);
-                var outtext = stringToBase64.encode(src);
-                log.t('エンコードされたsrc:$outtext');
+                var encodedText = stringToBase64.encode(text);
+                log.t('🍓base64エンコードした encodedText:$encodedText');
                 var prefs = await SharedPreferences.getInstance();
-                prefs.setString('devices', outtext);
+                prefs.setString('devices', encodedText);
               },
-              child: Text('ダミーデータ作成 (Dart)')),
+              child: const Text('ダミーデータ作成')),
 
             OutlinedButton(
               onPressed: () async {
-                var prefs = await SharedPreferences.getInstance();
-                var encdtext = prefs.getString('devices') ?? '';
-                log.t('srcdtext:$encdtext');
-                Codec<String, String> stringToBase64 = utf8.fuse(base64);
-                var text = stringToBase64.decode(encdtext);
-                log.t('text:$text');
+                final prefs = await SharedPreferences.getInstance();
+                final encodedText = prefs.getString('devices') ?? '';
+                log.t('🍓SharedPreferences から読み込んだ devices のエンコードされたテキスト, encodedText:$encodedText');
+                final Codec<String, String> stringToBase64 = utf8.fuse(base64);
+                final text = stringToBase64.decode(encodedText);
+                log.t('🍓base64デコードした Json テキスト, text:$text');
 
-                var x = jsonDecode(text);
-                log.t('x:$x, ${x.runtimeType}');
-                var y = KDeviceSet.fromJson(x);
-                Get.find<MyController>().deviceset.value = y;
+                final jsonMap = jsonDecode(text);
+                log.t('🍓Json デコードした テキスト, jsonMap:$jsonMap');
+                final newDeviceSet = KDeviceSet.fromJson(jsonMap);
+                Get.find<MyController>().myDeviceSet.value = newDeviceSet;
 
-                log.t('y:$y, ${y.runtimeType}');
-                log.t('y.devices ${y.devices}');
-                log.t('y.devices.length: ${y.devices?.length}');
-                y.devices?.forEach((element) {
-                  log.t('element: ${element.toJson()}');
+                log.t('🍓newDeviceSet:$newDeviceSet');
+                log.t('🍓newDeviceSet.devices ${newDeviceSet.devices}');
+                log.t('🍓newDeviceSet.devices.length: ${newDeviceSet.devices?.length}');
+                var num = 0;
+                newDeviceSet.devices?.forEach((element) {
+                  log.t('🍓[$num] element: ${element.toJson()}');
+                  num++;
                 });
               },
-              child: Text('ダミーデータ読込 (Dart)')
+              child: const Text('ダミーデータ読込')
             ),
 
           ],
         ),
       ),
     );
-    log.t('🍓🍓MyWidget1#build() DONE');
+    log.t('🍓MyWidget1#build() DONE');
     return ret;
   }
 }

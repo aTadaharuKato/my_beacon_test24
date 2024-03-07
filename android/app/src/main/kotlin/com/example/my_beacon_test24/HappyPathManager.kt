@@ -6,9 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.util.Log
-import com.example.my_beacon_test24.KDevice
-import com.google.gson.GsonBuilder
-import com.google.gson.annotations.SerializedName
 import org.altbeacon.beacon.Beacon
 import org.altbeacon.beacon.BeaconManager
 import org.altbeacon.beacon.BeaconParser
@@ -17,19 +14,6 @@ import org.altbeacon.beacon.MonitorNotifier
 import org.altbeacon.beacon.RangeNotifier
 import org.altbeacon.beacon.Region
 import java.util.UUID
-
-data class KDevice (
-    @SerializedName("ble_addr")
-    val bleAddr: String,
-
-    @SerializedName("nickname")
-    val nickname: String,
-)
-
-data class KDevices (
-    @SerializedName("devices")
-    val devices: List<KDevice>,
-)
 
 object HappyPathManager : MonitorNotifier, RangeNotifier {
 
@@ -42,17 +26,15 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
     )
     var curContext: Any? = null
 
-    var sensors = KDevices(emptyList<KDevice>())
-
     var lasNotifyTick = 0L
 
     init {
-        Log.i(Const.TAG, "HappyPathManager#init BEGIN")
-        Log.i(Const.TAG, "HappyPathManager#init DONE")
+        Log.i(Const.TAG, "🍙HappyPathManager#init BEGIN")
+        Log.i(Const.TAG, "🍙HappyPathManager#init DONE")
     }
 
     fun prepare(context: Context, preferences: SharedPreferences) : Boolean {
-        Log.i(Const.TAG, "HappyPathManager#prepare($preferences) BEGIN")
+        Log.i(Const.TAG, "🍙HappyPathManager#prepare($preferences) BEGIN")
         curPreferences = preferences
         var fSavedBeaconMonitoring = false
         if (!fStarted) {
@@ -61,45 +43,27 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
             Log.i(Const.TAG, "Preference/不揮発性メモリに格納された変数:$all")
             fSavedBeaconMonitoring = (all["fBeaconMonitoring"] as Boolean?) ?: false
 
-            val myJson = GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").create()
-
-            try {
-                (all["devices"] as String?)?.also {devicesJsonStr ->
-                    val v = myJson.fromJson(Const.base64Decode(devicesJsonStr), KDevices::class.java)
-                    Log.i(Const.TAG, "v:$v")
-                    sensors = v
-                }
-            } catch (e: Exception) {
-                Log.i(Const.TAG, "例外がおきました!!")
-                Log.i(Const.TAG, e.stackTraceToString())
-            }
-
-            // 登録デバイスの一覧をログ表示.
-            sensors.devices.forEach { device ->
-                val x = myJson.toJson(device)
-                Log.i(Const.TAG, "x:$x")
-            }
         }
-        Log.i(Const.TAG, "HappyPathManager#prepare($preferences) DONE")
+        Log.i(Const.TAG, "🍙HappyPathManager#prepare($preferences) DONE")
         return fSavedBeaconMonitoring
     }
 
     fun fBeaconMonitoringChange(flag: Boolean) {
-        Log.i(Const.TAG, "HappyPathManager#fBeaconMonitoringChange($flag) BEGIN")
+        Log.i(Const.TAG, "🍙HappyPathManager#fBeaconMonitoringChange($flag) BEGIN")
         if (fBeaconMonitoring != flag) {
-            Log.i(Const.TAG, "[NVM] fBeaconMonitoring <- $flag")
+            Log.i(Const.TAG, "🍙[NVM] fBeaconMonitoring <- $flag")
             curPreferences?.edit().also { edit ->
                 edit?.putBoolean("fBeaconMonitoring", flag)
                 edit?.apply()
             }
             fBeaconMonitoring = flag
         }
-        Log.i(Const.TAG, "HappyPathManager#fBeaconMonitoringChange($flag) DONE")
+        Log.i(Const.TAG, "🍙HappyPathManager#fBeaconMonitoringChange($flag) DONE")
     }
 
 
     fun iBeaconScanStart() {
-        Log.i(Const.TAG, "HappyPathManager#iBeaconScanStart() BEGIN")
+        Log.i(Const.TAG, "🍙HappyPathManager#iBeaconScanStart() BEGIN")
 
         lasNotifyTick = 0
 
@@ -130,11 +94,11 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
                 // 高速なバックグラウンド スキャン サイクルを設定する必要があります。
                 beaconManager.setEnableScheduledScanJobs(false)
 
-                Log.i(Const.TAG, "Foreground Scan Period: ${beaconManager.foregroundScanPeriod}")
-                Log.i(Const.TAG, "Foreground Between Scan Period: ${beaconManager.foregroundBetweenScanPeriod}")
-                Log.i(Const.TAG, "Background Scan Period: ${beaconManager.backgroundScanPeriod}")
-                Log.i(Const.TAG, "Background Between Scan Period: ${beaconManager.backgroundBetweenScanPeriod}")
-                Log.i(Const.TAG, "RegionExitPeriod: ${BeaconManager.getRegionExitPeriod()}")
+                Log.i(Const.TAG, "🍙Foreground Scan Period: ${beaconManager.foregroundScanPeriod}")
+                Log.i(Const.TAG, "🍙Foreground Between Scan Period: ${beaconManager.foregroundBetweenScanPeriod}")
+                Log.i(Const.TAG, "🍙Background Scan Period: ${beaconManager.backgroundScanPeriod}")
+                Log.i(Const.TAG, "🍙Background Between Scan Period: ${beaconManager.backgroundBetweenScanPeriod}")
+                Log.i(Const.TAG, "🍙RegionExitPeriod: ${BeaconManager.getRegionExitPeriod()}")
 
                 // 測距/監視クライアントがフォアグラウンドにない場合に、各 Bluetooth LE スキャンサイクル間で
                 // スキャンしない時間をミリ秒単位で設定します。
@@ -150,7 +114,7 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
 
                 BeaconManager.setRegionExitPeriod(4*1000) //未検知になって4秒でExitと判定
                 // ---
-                Log.i(Const.TAG, "MainActivity#onCreate() アプリでバックグラウンド監視を設定します.")
+                Log.i(Const.TAG, "🍙HappyPathManager#iBeaconScanStart() アプリでバックグラウンド監視を設定します.")
                 beaconManager.addMonitorNotifier(this)
                 beaconManager.addRangeNotifier(this)
 
@@ -158,16 +122,16 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
                 // このアプリの最後の実行で *異なる* リージョンを監視していた場合、それらは記憶されます。
                 // この場合、ここでそれらを無効にする必要があります。
                 beaconManager.monitoredRegions.forEach {
-                    Log.i(Const.TAG, "MainActivity#onCreate() stopMonitoring($it)")
+                    Log.i(Const.TAG, "🍙HappyPathManager#iBeaconScanStart() stopMonitoring($it)")
                     beaconManager.stopMonitoring(it)
                     beaconManager.stopRangingBeacons(it)
                 }
 
-                Log.i(Const.TAG, "Foreground Scan Period: ${beaconManager.foregroundScanPeriod}")
-                Log.i(Const.TAG, "Foreground Between Scan Period: ${beaconManager.foregroundBetweenScanPeriod}")
-                Log.i(Const.TAG, "Background Scan Period: ${beaconManager.backgroundScanPeriod}")
-                Log.i(Const.TAG, "Background Between Scan Period: ${beaconManager.backgroundBetweenScanPeriod}")
-                Log.i(Const.TAG, "RegionExitPeriod: ${BeaconManager.getRegionExitPeriod()}")
+                Log.i(Const.TAG, "🍙Foreground Scan Period: ${beaconManager.foregroundScanPeriod}")
+                Log.i(Const.TAG, "🍙Foreground Between Scan Period: ${beaconManager.foregroundBetweenScanPeriod}")
+                Log.i(Const.TAG, "🍙Background Scan Period: ${beaconManager.backgroundScanPeriod}")
+                Log.i(Const.TAG, "🍙Background Between Scan Period: ${beaconManager.backgroundBetweenScanPeriod}")
+                Log.i(Const.TAG, "🍙RegionExitPeriod: ${BeaconManager.getRegionExitPeriod()}")
 
                 // BeaconService がビーコンのリージョンを検出するか、検出を停止するたびに呼び出す必要があるクラスを指定します。
                 // 複数の MonitorNotifier オブジェクトの登録を許可します。
@@ -179,28 +143,28 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
                 fBeaconMonitoringChange(true)
             }
         }
-        Log.i(Const.TAG, "HappyPathManager#iBeaconScanStart() DONE")
+        Log.i(Const.TAG, "🍙HappyPathManager#iBeaconScanStart() DONE")
     }
 
     fun iBeaconScanStop() {
-        Log.i(Const.TAG, "HappyPathManager#iBeaconScanStop() BEGIN");
+        Log.i(Const.TAG, "🍙HappyPathManager#iBeaconScanStop() BEGIN");
         (curContext as? Context)?.also { context ->
             val beaconManager = BeaconManager.getInstanceForApplication(context)
-            Log.i(Const.TAG, "beaconManager.isAnyConsumerBound: ${beaconManager.isAnyConsumerBound} BEFORE")
+            Log.i(Const.TAG, "🍙beaconManager.isAnyConsumerBound: ${beaconManager.isAnyConsumerBound} BEFORE")
             if (beaconManager.isAnyConsumerBound) {
                 myBeaconRegionList.forEach { region ->
                     beaconManager.stopMonitoring(region)
                     beaconManager.stopRangingBeacons(region)
                 }
             }
-            Log.i(Const.TAG, "beaconManager.isAnyConsumerBound: ${beaconManager.isAnyConsumerBound} AFTER")
+            Log.i(Const.TAG, "🍙beaconManager.isAnyConsumerBound: ${beaconManager.isAnyConsumerBound} AFTER")
         }
         fBeaconMonitoringChange(false)
-        Log.i(Const.TAG, "HappyPathManager#iBeaconScanStop() DONE");
+        Log.i(Const.TAG, "🍙HappyPathManager#iBeaconScanStop() DONE");
     }
 
     override fun didEnterRegion(region: Region?) {
-        Log.i(Const.TAG, "HappyPathManager#didEnterRegion() - 領域に入りました. $region")
+        Log.i(Const.TAG, "🍙HappyPathManager#didEnterRegion() - 領域に入りました. $region")
         /*
         region?.also { region ->
             Log.i(Const.TAG, "bluetoothAddress:${region.bluetoothAddress}, id1:${region.id1}, id2:${region.id2}, id3:${region.id3}")
@@ -208,44 +172,44 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
     }
 
     override fun didExitRegion(region: Region?) {
-        Log.i(Const.TAG, "HappyPathManager#didExitRegion() - 領域を出ました. $region")
+        Log.i(Const.TAG, "🍙HappyPathManager#didExitRegion() - 領域を出ました. $region")
     }
 
     override fun didDetermineStateForRegion(state: Int, region: Region?) {
-        Log.i(Const.TAG, "HappyPathManager#didDetermineStateForRegion(state:$state, region:$region)")
+        Log.i(Const.TAG, "🍙HappyPathManager#didDetermineStateForRegion(state:$state, region:$region)")
     }
 
     override fun didRangeBeaconsInRegion(beacons: MutableCollection<Beacon>?, region: Region?) {
-        Log.i(Const.TAG, "HappyPathManager#didRangeBeaconsInRegion(beacons:$beacons, region:$region)")
+        Log.i(Const.TAG, "🍙HappyPathManager#didRangeBeaconsInRegion(beacons:$beacons, region:$region)")
 
         var curtick = System.currentTimeMillis()
         var elapsed = curtick - lasNotifyTick
         if (elapsed < Const.MIN_NOTIFY_INTERVAL_MILLIS) {
-            Log.i(Const.TAG, "elapsed $elapsed mills, skip this data")
+            Log.i(Const.TAG, "🍙elapsed $elapsed mills, skip this data")
         }
 
         beacons?.forEach {beacon ->
-            Log.i(Const.TAG, "beacon:$beacon")
+            Log.i(Const.TAG, "🍙beacon:$beacon")
 
-            Log.i(Const.TAG, "bluetoothAddress:${beacon.bluetoothAddress}, id1:${beacon.id1}, id2:${beacon.id2}, id3:${beacon.id3}, ")
+            Log.i(Const.TAG, "🍙bluetoothAddress:${beacon.bluetoothAddress}, id1:${beacon.id1}, id2:${beacon.id2}, id3:${beacon.id3}, ")
             val svc = beacon.id1.toUuid()
             val ex1 = UUID.fromString("C722DB4C-5D91-1801-BEB5-001C4DE7B3FD")
             if (svc == ex1) {
                 // 温湿度気圧センサ APZ-110 の場合，
                 val major = beacon.id2.toInt();
                 val minor = beacon.id3.toInt();
-                Log.i(Const.TAG, "major:$major, (0x${HexDump.IntToHexString(major)}), minor:$minor, (0x${HexDump.IntToHexString(minor)})")
+                Log.i(Const.TAG, "🍙major:$major, (0x${HexDump.IntToHexString(major)}), minor:$minor, (0x${HexDump.IntToHexString(minor)})")
 
                 val u = (major shr 4) and 0x3FF
                 val v = ((major shl 3) or (minor shr 13)) and 0x7F
                 val w = minor and 0x1FFF
 
                 val Rt = 0.1 * u.toDouble() - 30.0
-                val Rh = v
+                val Rh = v.toDouble()
                 val Rp = 0.1 * w.toDouble() + 300.0
                 //Log.i(Const.TAG, "温度: $Rt [℃], 湿度: $Rh [%], 気圧: $Rp [hPa]")
 
-                var s = String.format("温度: %.1f [℃], 湿度: %d [%%], 気圧: %.1f [hPa])", Rt, Rh, Rp)
+                var s = String.format("🍙温度: %.1f [℃], 湿度: %.0f [%%], 気圧: %.1f [hPa])", Rt, Rh, Rp)
                 Log.i(Const.TAG, s)
                 (curContext as? MyNativeMsgSender)?.sendNativeMessage(mapOf(
                     "api" to "notify_sensor_data",
@@ -260,5 +224,4 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
             }
         }
     }
-
 }

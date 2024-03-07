@@ -12,7 +12,6 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
-import org.altbeacon.beacon.Region
 
 class MainActivity: FlutterActivity(), MyNativeMsgSender {
     companion object {
@@ -22,7 +21,7 @@ class MainActivity: FlutterActivity(), MyNativeMsgSender {
     private var fDestroyed = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.i(Const.TAG, "MainActivity#onCreate() BEGIN")
+        Log.i(Const.TAG, "🍙MainActivity#onCreate() BEGIN")
         super.onCreate(savedInstanceState)
         HappyPathManager.curContext = this
 
@@ -30,49 +29,51 @@ class MainActivity: FlutterActivity(), MyNativeMsgSender {
         getMyForegroundServiceNotificationChannel();
         getMyRegionNotificationChannel();
 
-        Log.i(Const.TAG, "MainActivity#onCreate() DONE")
+        Log.i(Const.TAG, "🍙MainActivity#onCreate() DONE")
     }
 
     override fun onStart() {
-        Log.i(Const.TAG, "MainActivity#onStart() BEGIN, this:$this")
+        Log.i(Const.TAG, "🍙MainActivity#onStart() BEGIN, this:$this")
         super.onStart()
-        Log.i(Const.TAG, "MainActivity#onStart() DONE")
+        Log.i(Const.TAG, "🍙MainActivity#onStart() DONE")
     }
     override fun onResume() {
-        Log.i(Const.TAG, "MainActivity#onResume() BEGIN, this:$this")
+        Log.i(Const.TAG, "🍙MainActivity#onResume() BEGIN, this:$this")
         super.onResume()
-        Log.i(Const.TAG, "MainActivity#onResume() DONE")
+        Log.i(Const.TAG, "🍙MainActivity#onResume() DONE")
     }
     override fun onPause() {
-        Log.i(Const.TAG, "MainActivity#onPause() BEGIN, this:$this")
+        Log.i(Const.TAG, "🍙MainActivity#onPause() BEGIN, this:$this")
         super.onPause()
-        Log.i(Const.TAG, "MainActivity#onPause() DONE")
+        Log.i(Const.TAG, "🍙MainActivity#onPause() DONE")
     }
     override fun onStop() {
-        Log.i(Const.TAG, "MainActivity#onStop() BEGIN, this:$this")
+        Log.i(Const.TAG, "🍙MainActivity#onStop() BEGIN, this:$this")
         super.onStop()
-        Log.i(Const.TAG, "MainActivity#onStop() DONE")
+        Log.i(Const.TAG, "🍙MainActivity#onStop() DONE")
     }
 
     override fun onDestroy() {
-        Log.i(Const.TAG, "MainActivity#onDestroy() BEGIN, this:$this")
+        Log.i(Const.TAG, "🍙MainActivity#onDestroy() BEGIN, this:$this")
         super.onDestroy()
-        Log.i(Const.TAG, "MainActivity#onDestroy() DONE")
+        fDestroyed = true
+        Log.i(Const.TAG, "🍙MainActivity#onDestroy() DONE")
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
-        Log.i(Const.TAG, "MainActivity#configureFlutterEngine() BEGIN")
+        Log.i(Const.TAG, "🍙MainActivity#configureFlutterEngine() BEGIN")
         super.configureFlutterEngine(flutterEngine)
         val preferences = PreferenceManager.getDefaultSharedPreferences(this)
         HappyPathManager.prepare(this, preferences)
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, Const.MY_METHOD_CHAMMEL).setMethodCallHandler { call, result ->
-            Log.i(Const.TAG, "ネイティブメソッド呼出ハンドラ, method=${call.method} BEGIN")
+            Log.i(Const.TAG, "🍙ネイティブメソッド呼出ハンドラ, method=${call.method} BEGIN")
             try {
                 when (call.method) {
+                    /*
                     "create_dummy_data" -> {
                         val jsonstr = call.arguments<String>()
-                        Log.i(Const.TAG, "jsonstr:$jsonstr");
+                        Log.i(Const.TAG, "🍙jsonstr:$jsonstr");
                         jsonstr?.also {jsonstr ->
                             preferences.edit().also { edit ->
                                 edit.putString("devices", Const.base64Encode(jsonstr))
@@ -81,14 +82,19 @@ class MainActivity: FlutterActivity(), MyNativeMsgSender {
                         }
                         result.success(12345)
                     }
+                     */
                     "start_beacon_scan" -> {
                         HappyPathManager.iBeaconScanStart();
                         result.success(56789)
                     }
+
                     "stop_beacon_scan" -> {
                         HappyPathManager.iBeaconScanStop();
                         result.success(12345)
                     }
+
+                    // ネイティブからの，ローカル通知のテストコード.
+                    // MTG step3 の検討用.
                     "test_notification" -> {
                         val manager = getSystemService(NotificationManager::class.java)
                         val channelId = Const.MY_REGION_NOTIFY_CHANNEL_ID
@@ -103,6 +109,7 @@ class MainActivity: FlutterActivity(), MyNativeMsgSender {
 
                         result.success(99999)
                     }
+
                     else -> {
                         result.notImplemented()
                     }
@@ -174,6 +181,10 @@ class MainActivity: FlutterActivity(), MyNativeMsgSender {
         return channel
     }
 
+
+    /**
+     * Flutter 側にメッセージを送ります.
+     */
     override fun sendNativeMessage(arg: Any?) {
         Log.i(Const.TAG, "MainActivity#sendNativeMessage($arg) BEGIN")
         if (!fDestroyed) {

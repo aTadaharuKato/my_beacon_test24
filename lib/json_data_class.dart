@@ -1,9 +1,14 @@
 
 // https://javiercbk.github.io/json_to_dart/
+import 'main.dart';
+
 class KDeviceSet {
   List<KDevice>? devices;
+  List<KDevice> _validDevices = [];
 
   KDeviceSet({this.devices});
+
+
 
   int getNumberOfDevices() {
     if (devices != null) {
@@ -11,6 +16,27 @@ class KDeviceSet {
     }
     return 0;
   }
+
+  /***
+   * 有効な（すなわち，設定画面で，表示にチェックした）デバイスのリストを取得します.
+   */
+  List<KDevice> getValidDevices() {
+    log.t('🍇KDeviceSet#getValidDevices() BEGIN');
+    List<KDevice> newList = [];
+    var numDevices = 0;
+    if (devices != null) {
+      devices?.forEach((element) {
+        if (element.fShow != null) {
+          if (element.fShow != false) {
+            numDevices++;
+            newList.add(element);
+          }
+        }
+      });
+    }
+    return newList;
+  }
+
 
   KDeviceSet.fromJson(Map<String, dynamic> json) {
     if (json['devices'] != null) {
@@ -33,21 +59,33 @@ class KDeviceSet {
 class KDevice {
   String? bleAddr;
   String? nickname;
+  bool? fShow;
 
   double _temperature = double.negativeInfinity;
   double _humidity = double.negativeInfinity;
   double _pressure = double.negativeInfinity;
 
-  void setSensorData([double? temperature, double? humidity, double? pressure]) {
+  bool setSensorData([double? temperature, double? humidity, double? pressure]) {
+    bool fModified = false;
     if (temperature != null) {
-      _temperature = temperature;
+      if (_temperature != temperature) {
+        fModified = true;
+        _temperature = temperature;
+      }
     }
     if (humidity != null) {
-      _humidity = humidity;
+      if (_humidity != humidity) {
+        fModified = true;
+        _humidity = humidity;
+      }
     }
     if (pressure != null) {
-      _pressure = pressure;
+      if (_pressure != pressure) {
+        fModified = true;
+        _pressure = pressure;
+      }
     }
+    return fModified;
   }
 
   bool isTheTemperatureAvailable() {
@@ -86,17 +124,19 @@ class KDevice {
     }
   }
 
-  KDevice({this.bleAddr, this.nickname});
+  KDevice({this.bleAddr, this.nickname, this.fShow});
 
   KDevice.fromJson(Map<String, dynamic> json) {
     bleAddr = json['ble_addr'];
     nickname = json['nickname'];
+    fShow = json['show_flag'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = Map<String, dynamic>();
     data['ble_addr'] = bleAddr;
     data['nickname'] = nickname;
+    data['show_flag'] = (fShow == null) ? false : fShow;
     return data;
   }
 }

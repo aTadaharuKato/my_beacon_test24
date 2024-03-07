@@ -24,14 +24,16 @@ class Const {
         // 前回通知して，次に通知する，最短の間隔.
         const val MIN_NOTIFY_INTERVAL_MILLIS = 10000
 
+        // src 文字列を BASE64 エンコードした文字列を返却します.
         fun base64Encode(src: String): String {
             val srcBytes = src.toByteArray(Charsets.UTF_8)
             return Base64.encodeToString(srcBytes, Base64.DEFAULT)
         }
+
+        // str 文字列を BASE64 デコードした文字列を返却します.
         fun base64Decode(src: String): String {
             val dstBytes = Base64.decode(src, Base64.DEFAULT)
             return String(dstBytes, Charsets.UTF_8)
         }
-
     }
 }

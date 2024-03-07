@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
 import 'home_widget.dart';
+import 'setting_widget.dart';
 import 'my_controller.dart';
 
 final log = Logger(printer: SimplePrinter(colors: true, printTime: true));
@@ -19,7 +20,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    log.t('🍓🍓MyApp#build() BEGIN');
+    log.t('🍓MyApp#build() BEGIN');
 
     Get.put(MyController());
 
@@ -54,7 +55,7 @@ class MyApp extends StatelessWidget {
           GetPage(name: '/',          page: () => MyHomePage()),          // メイン画面
         ]
     );
-    log.t('🍓🍓MyApp#build() DONE');
+    log.t('🍓MyApp#build() DONE');
     return ret;
   }
 }
@@ -64,18 +65,18 @@ class MyHomePage extends StatelessWidget {
 
   final _routes = [
     MyHomeWidget(),
-    const MyWidget2(),
+    const MySettingWidget(),
     const MyWidget3(),
   ];
 
   @override
   Widget build(BuildContext context) {
-    log.t('🍓🍓MyHomePage#build() BEGIN');
+    log.t('🍓MyHomePage#build() BEGIN');
 
     Get.find<MyController>().initialTask();
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      log.t("🍓🍓 PostFrameCallback, $timeStamp");
+      log.t("🍓 PostFrameCallback, $timeStamp");
     });
 
 
@@ -151,34 +152,13 @@ class MyHomePage extends StatelessWidget {
         }
       }),
     );
-    log.t('🍓🍓MyHomePage#build() DONE');
+    log.t('🍓MyHomePage#build() DONE');
     return ret;
   }
 }
 
 
 
-
-class MyWidget2 extends StatelessWidget {
-  const MyWidget2({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    log.t('🍓🍓MyWidget2#build() BEGIN');
-    var ret = const Center(
-      child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('MyWidget2'),
-            ],
-          )
-      ),
-    );
-    log.t('🍓🍓MyWidget2#build() DONE');
-    return ret;
-  }
-}
 
 
 
@@ -187,7 +167,7 @@ class MyWidget3 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    log.t('🍓🍓MyWidget3#build() BEGIN');
+    log.t('🍓MyWidget3#build() BEGIN');
     final size = MediaQuery.of(context).size;
     var ret = SingleChildScrollView(
       child: Container(
@@ -208,7 +188,7 @@ class MyWidget3 extends StatelessWidget {
         ),
       ),
     );
-    log.t('🍓🍓MyWidget3#build() DONE');
+    log.t('🍓MyWidget3#build() DONE');
     return ret;
   }
 }
