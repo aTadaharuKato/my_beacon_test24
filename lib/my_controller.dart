@@ -74,13 +74,11 @@ class MyController extends GetxController {
 
   var myDialogTextFieldController = TextEditingController();
 
-  /***
-   * myDeviceSet を不揮発メモリに保存します.
-   */
+  /// myDeviceSet を不揮発メモリに保存します.
   void storeDeviceSetToNVM() async {
     log.t('🍓MyController#storeDeviceSetToNVM() BEGIN');
     final String jsonText = jsonEncode(myDeviceSet.toJson());
-    log.t('jsonText: $jsonText');
+    log.t('🍓jsonText: $jsonText');
 
     Codec<String, String> stringToBase64 = utf8.fuse(base64);
     var encodedText = stringToBase64.encode(jsonText);
@@ -117,9 +115,7 @@ class MyController extends GetxController {
     buildNumber = packageInfo.buildNumber;
   }
 
-  /**
-   * ネイティブからのイベントを受け取りを開始します.
-   */
+  /// ネイティブからのイベントを受け取りを開始します.
   void _myEventReceiverEnable() {
     // Streamからデータを都度受け取れる
     _streamSubscription = channel.receiveBroadcastStream().listen((dynamic event) async {
@@ -132,12 +128,9 @@ class MyController extends GetxController {
             String? deviceAddr = data['device'];
             log.t('🍓deviceAddr: $deviceAddr');
 
-            //String? deviceAddr2 = data['device2'];
-            //log.t('🍓deviceAddr2: $deviceAddr2');
-
             if (deviceAddr != null) {
               var validDevices = myDeviceSet.value.getValidDevices();
-              validDevices.forEach((device) {
+              for (var device in validDevices) {
                 if (device.bleAddr == deviceAddr) {
                   log.t('🍓match Device Found!');
                   double? temperature = data['temperature'];
@@ -146,35 +139,27 @@ class MyController extends GetxController {
                   if (device.setSensorData(temperature, humidity, pressure)) {
                     update();
                   }
-                  return;
+                  break;
                 }
-              });
+              }
             }
-
           } catch (e) {
             log.e('Exception Occurred, e:$e');
           }
 
-
-          //var elem = MyData(data['temperature'], data['humidity'], data['pressure'], data['device']);
-          //String json = jsonEncode(elem);
-          //log.t('🍓:$json');
-          //this.data.value = elem;
 
         } else {
           log.t('🚩予期しないネイティブイベントの通知を受けました.');
         }
       },
       onError: (dynamic error) {
-        print('🚩myEventReceiverEnable, error: $error');
+        log.e('🚩myEventReceiverEnable, error: $error');
       },
       cancelOnError: true,
     );
   }
 
-  /**
-   * ネイティブからのイベントの受け取りを終了します.
-   */
+  /// ネイティブからのイベントの受け取りを終了します.
   void _myEventReceiverDisable() {
     if (_streamSubscription != null) {
       _streamSubscription?.cancel();

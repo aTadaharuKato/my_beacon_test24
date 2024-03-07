@@ -1,10 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:my_beacon_test24/my_controller.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'json_data_class.dart';
@@ -16,7 +13,7 @@ class MyHomeWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     log.t('🍓MyWidget1#build() BEGIN');
-    final size = MediaQuery.of(context).size;
+    //final size = MediaQuery.of(context).size;
     var ret = SingleChildScrollView(
       child: Container(
         width: double.infinity,

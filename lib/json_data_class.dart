@@ -1,15 +1,13 @@
 
-// https://javiercbk.github.io/json_to_dart/
 import 'main.dart';
 
+// https://javiercbk.github.io/json_to_dart/ で作成したものを元にしている.
 class KDeviceSet {
   List<KDevice>? devices;
-  List<KDevice> _validDevices = [];
 
   KDeviceSet({this.devices});
 
-
-
+  /// 登録されているデバイス数（表示をしないものを含む）を取得する.
   int getNumberOfDevices() {
     if (devices != null) {
       return devices!.length;
@@ -17,18 +15,14 @@ class KDeviceSet {
     return 0;
   }
 
-  /***
-   * 有効な（すなわち，設定画面で，表示にチェックした）デバイスのリストを取得します.
-   */
+  /// 有効な（すなわち，設定画面で，表示にチェックした）デバイスのリストを取得します.
   List<KDevice> getValidDevices() {
     log.t('🍇KDeviceSet#getValidDevices() BEGIN');
     List<KDevice> newList = [];
-    var numDevices = 0;
     if (devices != null) {
       devices?.forEach((element) {
         if (element.fShow != null) {
           if (element.fShow != false) {
-            numDevices++;
             newList.add(element);
           }
         }
@@ -36,7 +30,6 @@ class KDeviceSet {
     }
     return newList;
   }
-
 
   KDeviceSet.fromJson(Map<String, dynamic> json) {
     if (json['devices'] != null) {
@@ -48,13 +41,14 @@ class KDeviceSet {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     if (devices != null) {
       data['devices'] = devices!.map((v) => v.toJson()).toList();
     }
     return data;
   }
 }
+
 
 class KDevice {
   String? bleAddr;
@@ -133,7 +127,7 @@ class KDevice {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data['ble_addr'] = bleAddr;
     data['nickname'] = nickname;
     data['show_flag'] = (fShow == null) ? false : fShow;

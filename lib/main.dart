@@ -64,7 +64,7 @@ class MyHomePage extends StatelessWidget {
   MyHomePage({super.key});
 
   final _routes = [
-    MyHomeWidget(),
+    const MyHomeWidget(),
     const MySettingWidget(),
     const MyWidget3(),
   ];
@@ -140,7 +140,7 @@ class MyHomePage extends StatelessWidget {
 
       body: Obx(() {
         if (Get.find<MyController>().fHomePageReady.value == false) {
-          return SafeArea(
+          return const SafeArea(
             child: Center(
               child: CircularProgressIndicator(
                 strokeWidth: 10,
