@@ -10,47 +10,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'json_data_class.dart';
 import 'main.dart';
 
-/*
-class MyDevice {
-  String deviceId; // Bluetooth Address.
-  String nickname; //
-
-  MyDevice(this.deviceId, this.nickname);
-
-  MyDevice.fromJson(Map<String, dynamic> json)
-      : deviceId = json['device_id'] as String,
-        nickname = json['nickname'] as String;
-
-  Map<String, dynamic> toJson() => {
-    'device_Id': deviceId,
-    'nickname': nickname,
-  };
-}
-
-
-class MyData {
-  double temperature;
-  int humidity;
-  double pressure;
-  String device;
-
-  MyData(this.temperature, this.humidity, this.pressure, this.device);
-
-  MyData.fromJson(Map<String, dynamic> json)
-      : temperature = json['temperature'] as double,
-        humidity = json['humidity'] as int,
-        pressure = json['pressure'] as double,
-        device = json['device'];
-
-  Map<String, dynamic> toJson() => {
-    'temperature': temperature,
-    'humidity': humidity,
-    'pressure': pressure,
-    'device': device,
-  };
-}
- */
-
 class MyController extends GetxController {
   static const platform = MethodChannel('samples.flutter.dev/battery');
   static const channel = EventChannel('samples.flutter.dev/counter');
@@ -66,11 +25,13 @@ class MyController extends GetxController {
   var buildNumber = "";
 
   var fBeaconScanning = false.obs;
+  var fDeviceSearching = false;
 
   var myTextFieldController = TextEditingController();
   var fMyTextFieldEnable = true.obs;
   var myEncodedText = "".obs;
-  var myDeviceSet = KDeviceSet().obs;
+
+  var myDeviceSet = KDeviceSet();
 
   var myDialogTextFieldController = TextEditingController();
 
@@ -123,13 +84,69 @@ class MyController extends GetxController {
         var apiname = event['api'];
         if (apiname == "notify_sensor_data") {
           var data = event['data'];
-
           try {
             String? deviceAddr = data['device'];
             log.t('🍓deviceAddr: $deviceAddr');
-
             if (deviceAddr != null) {
-              var validDevices = myDeviceSet.value.getValidDevices();
+
+              var fIsDialogOpen = Get.isDialogOpen ?? false;
+              // デバイス検索中の場合.
+              if (fDeviceSearching && fIsDialogOpen) {
+                var fKnownDevice = false;
+                if (myDeviceSet.devices != null) {
+                  for (var device in myDeviceSet.devices!) {
+                    if (device.bleAddr == deviceAddr) {
+                      fKnownDevice = true;
+                      break;
+                    }
+                  }
+                }
+                if (fKnownDevice == false) {
+                  log.t('🍓新しいデバイスが見つかりましたよ!');
+                  log.t('${Get.isDialogOpen}');
+                  Get.back();
+                  fDeviceSearching = false;
+                  Get.dialog(
+                    barrierDismissible: false, // ダイアログ領域外をタップしたときに，ダイアログを閉じないようにする.
+                    PopScope(
+                      canPop: false,
+                      child: AlertDialog(
+                        title: Text('新しいデバイスが見つかりました!'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('BDADDR: $deviceAddr'),
+                            Text('このデバイスを登録しますか？'),
+                          ],
+                        ),
+                        actions: [
+                          OutlinedButton(
+                              onPressed: () {
+                                Get.back();
+                                KDevice newDevice = KDevice(bleAddr: deviceAddr, nickname: '無視するデバイス', fShow: false);
+                                myDeviceSet.devices?.add(newDevice);
+                                update();
+                              },
+                              child: Text('無視')
+                          ),
+                          OutlinedButton(
+                              onPressed: () {
+                                Get.back();
+                                KDevice newDevice = KDevice(bleAddr: deviceAddr, nickname: '新しいデバイス', fShow: true);
+                                myDeviceSet.devices?.add(newDevice);
+                                update();
+                              },
+                              child: Text('登録')
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+              }
+
+              // 通知された BD アドレスが，有効なデバイスのものと一致するならば，センサデータを更新する.
+              var validDevices = myDeviceSet.getValidDevices();
               for (var device in validDevices) {
                 if (device.bleAddr == deviceAddr) {
                   log.t('🍓match Device Found!');
@@ -191,7 +208,7 @@ class MyController extends GetxController {
       var deviceSetMap = jsonDecode(jsonText);
       log.t('🍓deviceSetMap:$deviceSetMap, ${deviceSetMap.runtimeType}');
       var newDeviceSet = KDeviceSet.fromJson(deviceSetMap);
-      Get.find<MyController>().myDeviceSet.value = newDeviceSet;
+      myDeviceSet = newDeviceSet;
 
       log.t('🍓newDeviceSet:$newDeviceSet, ${newDeviceSet.runtimeType}');
       log.t('🍓newDeviceSet.devices ${newDeviceSet.devices}');
@@ -203,7 +220,7 @@ class MyController extends GetxController {
       log.t('🚩error:$error');
     }
 
-    log.t('🍓number of devices: ${myDeviceSet.value.getNumberOfDevices()}');
+    log.t('🍓number of devices: ${myDeviceSet.getNumberOfDevices()}');
 
     fHomePageReady.value = true;
     log.t('🍓 MyController#initialTask() DONE');

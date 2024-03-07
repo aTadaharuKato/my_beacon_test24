@@ -62,7 +62,7 @@ class MyHomeWidget extends StatelessWidget {
 
             GetBuilder<MyController>(builder: (controller) {
               log.t('🍎🍎🍎🍎 MyHomeWidget');
-              var deviceSet = controller.myDeviceSet.value;
+              var deviceSet = controller.myDeviceSet;
               var validDeviceList = deviceSet.getValidDevices();
               var validNumberOfDevices = validDeviceList.length;
 
@@ -242,7 +242,7 @@ class MyHomeWidget extends StatelessWidget {
                 final jsonMap = jsonDecode(text);
                 log.t('🍓Json デコードした テキスト, jsonMap:$jsonMap');
                 final newDeviceSet = KDeviceSet.fromJson(jsonMap);
-                Get.find<MyController>().myDeviceSet.value = newDeviceSet;
+                Get.find<MyController>().myDeviceSet = newDeviceSet;
 
                 log.t('🍓newDeviceSet:$newDeviceSet');
                 log.t('🍓newDeviceSet.devices ${newDeviceSet.devices}');

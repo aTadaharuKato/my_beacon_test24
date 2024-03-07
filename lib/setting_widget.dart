@@ -23,7 +23,24 @@ class MySettingWidget extends StatelessWidget {
             // 表でデバイス一覧を表示する.
             GetBuilder<MyController>(builder: (controller) {
               log.t('🍎🍎🍎🍎 MySettingWidget#GetBuilder()');
-              KDeviceSet deviceSet = controller.myDeviceSet.value;
+              KDeviceSet deviceSet = controller.myDeviceSet;
+
+              if (deviceSet.getNumberOfDevices() == 0) {
+                log.t('🍓登録デバイスがありません!');
+                return Container(
+                  width: double.infinity,
+                  margin: EdgeInsets.all(8),
+                  color: Colors.indigo.shade100,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text('登録デバイスがありません',style: Theme.of(context).textTheme.titleMedium),
+                      Text('デバイスを検索して，登録しましょう.'),
+                    ],
+                  )
+                );
+              }
+
               return Table(
                 border: TableBorder.all(),
                 columnWidths: const <int, TableColumnWidth> {
@@ -78,7 +95,7 @@ class MySettingWidget extends StatelessWidget {
                             onChanged: (flag) {
                               log.t('🍓「表示」チェックボックスが変更されました. flag: $flag');
                               elem.fShow = flag;
-                              var targetDevice = controller.myDeviceSet.value.devices?.elementAt(index - 1);
+                              var targetDevice = controller.myDeviceSet.devices?.elementAt(index - 1);
                               targetDevice?.fShow = flag;
                               controller.update();
                               controller.storeDeviceSetToNVM();
@@ -91,7 +108,14 @@ class MySettingWidget extends StatelessWidget {
                           children: [
                             // 削除ボタン.
                             OutlinedButton.icon(
-                              onPressed: () {},
+                              onPressed: () {
+                                final deviceIndex = index - 1;
+                                log.t('🍓deviceIndex:$deviceIndex の項目を削除します!');
+                                if (deviceSet.removeDevice(deviceIndex)) {
+                                  controller.update();
+                                  controller.storeDeviceSetToNVM();
+                                }
+                              },
                               icon: const Icon(Icons.delete),
                               label: const Text('削除')
                             ),
@@ -145,48 +169,52 @@ class MySettingWidget extends StatelessWidget {
                                 controller.myDialogTextFieldController.text = elem.nickname ?? "";
                                 // 「ニックネーム変更」ダイアログを表示する.
                                 Get.dialog(
-                                  AlertDialog(
-                                    title: const Text('ニックネーム変更'),
-                                    content: TextField(
-                                      decoration: const InputDecoration(labelText: '新しいニックネーム'),
-                                      controller: controller.myDialogTextFieldController,
-                                      keyboardType: TextInputType.text,
-                                      //onChanged: (text) {
-                                      //  log.t('🍓text: $text');
-                                      //},
-                                    ),
-                                    actions: [
-                                      // 「キャンセル」ボタン.
-                                      OutlinedButton(
-                                        onPressed: () {
-                                          Get.back();
-                                        },
-                                        child: const Text('キャンセル')
+                                  barrierDismissible: false, // ダイアログ領域外をタップしたときに，ダイアログを閉じないようにする.
+                                  PopScope(
+                                    canPop: false,
+                                    child: AlertDialog(
+                                      title: const Text('ニックネーム変更'),
+                                      content: TextField(
+                                        decoration: const InputDecoration(labelText: '新しいニックネーム'),
+                                        controller: controller.myDialogTextFieldController,
+                                        keyboardType: TextInputType.text,
+                                        //onChanged: (text) {
+                                        //  log.t('🍓text: $text');
+                                        //},
                                       ),
-                                      // 「OK」ボタン.
-                                      OutlinedButton(
-                                        onPressed: () {
-                                          final newText = controller.myDialogTextFieldController.text;
-                                          log.t('🍓編集されたテキストは,「$newText」です.');
-                                          if (newText == elem.nickname) {
-                                            log.t('🍓これは，以前のニックネームと同じです.');
-                                          } else {
-                                            // この時点で elem はコピーみたいで，以下の記述では，新しいニックネームが反映されない.
-                                            //elem.nickname = newText;
-                                            //log.t('elem.nickname: ${elem.nickname}');
+                                      actions: [
+                                        // 「キャンセル」ボタン.
+                                        OutlinedButton(
+                                            onPressed: () {
+                                              Get.back();
+                                            },
+                                            child: const Text('キャンセル')
+                                        ),
+                                        // 「OK」ボタン.
+                                        OutlinedButton(
+                                          onPressed: () {
+                                            final newText = controller.myDialogTextFieldController.text;
+                                            log.t('🍓編集されたテキストは,「$newText」です.');
+                                            if (newText == elem.nickname) {
+                                              log.t('🍓これは，以前のニックネームと同じです.');
+                                            } else {
+                                              // この時点で elem はコピーみたいで，以下の記述では，新しいニックネームが反映されない.
+                                              //elem.nickname = newText;
+                                              //log.t('elem.nickname: ${elem.nickname}');
 
-                                            final targetDevice = controller.myDeviceSet.value.devices?.elementAt(index - 1);
-                                            log.t('🍓targetDevice?.nickname: ${targetDevice?.nickname}');
-                                            targetDevice?.nickname = newText;
-                                          }
-                                          Get.back();
-                                          controller.update();
-                                          controller.storeDeviceSetToNVM();
-                                        },
-                                        child: const Text('OK'),
-                                      ),
-                                    ],
-                                  )
+                                              final targetDevice = controller.myDeviceSet.devices?.elementAt(index - 1);
+                                              log.t('🍓targetDevice?.nickname: ${targetDevice?.nickname}');
+                                              targetDevice?.nickname = newText;
+                                            }
+                                            Get.back();
+                                            controller.update();
+                                            controller.storeDeviceSetToNVM();
+                                          },
+                                          child: const Text('OK'),
+                                        ),
+                                      ],
+                                    )
+                                  ),
                                 );
                               },
                               icon: const Icon(Icons.drive_file_rename_outline),
@@ -200,6 +228,43 @@ class MySettingWidget extends StatelessWidget {
                 }),
               );
             }),
+
+            OutlinedButton.icon(
+              onPressed: () {
+                log.t('🍓「デバイスを検索する.」ボタンの onPressed() BEGIN');
+                Get.dialog(
+                  barrierDismissible: false, // ダイアログ領域外をタップしたときに，ダイアログを閉じないようにする.
+                  PopScope(
+                    canPop: false,
+                    child: AlertDialog(
+                      title: const Text('デバイスを検索しています.'),
+                      content: const Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(
+                              strokeWidth: 10,
+                            ),
+                          ]
+                      ),
+                      actions: [
+                        // 「キャンセル」ボタン.
+                        OutlinedButton(
+                            onPressed: () {
+                              Get.back();
+                              Get.find<MyController>().fDeviceSearching = false;
+                            },
+                            child: const Text('キャンセル')
+                        ),
+                      ]
+                    ),
+                  ),
+                );
+                Get.find<MyController>().fDeviceSearching = true;
+                log.t('🍓「デバイスを検索する.」ボタンの onPressed() DONE');
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('デバイスを検索する.'),
+            ),
           ],
         ),
       ),

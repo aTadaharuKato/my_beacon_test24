@@ -7,6 +7,32 @@ class KDeviceSet {
 
   KDeviceSet({this.devices});
 
+  /// index で指定するデバイスを devices リストから削除します.
+  bool removeDevice(int index) {
+    log.t('🍇KDeviceSet#removeDevice(index:$index) BEGIN');
+    bool fModified = false;
+    if (devices != null) {
+      var numberOfDevices = devices!.length;
+      // 入れ替え用の空リストを作成.
+      List<KDevice> newList = [];
+
+      // e.g. numberOfDevices = 5, index = 2
+      // - prev: 0, 1, 2, 3, 4
+      // - post: 0, 1, 3, 4
+
+      if (index > 0) {
+        newList += devices!.sublist(0, index);
+      }
+      if (index < (numberOfDevices - 1)) {
+        newList += devices!.sublist(index + 1, numberOfDevices);
+      }
+      devices = newList;
+      fModified = true;
+    }
+    log.t('🍇KDeviceSet#removeDevice(index:$index) DONE');
+    return fModified;
+  }
+
   /// 登録されているデバイス数（表示をしないものを含む）を取得する.
   int getNumberOfDevices() {
     if (devices != null) {
@@ -28,6 +54,7 @@ class KDeviceSet {
         }
       });
     }
+    log.t('🍇KDeviceSet#getValidDevices() DONE');
     return newList;
   }
 
