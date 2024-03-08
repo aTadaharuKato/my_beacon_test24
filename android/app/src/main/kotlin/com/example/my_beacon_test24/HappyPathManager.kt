@@ -102,14 +102,14 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
 
                 // 測距/監視クライアントがフォアグラウンドにない場合に、各 Bluetooth LE スキャンサイクル間で
                 // スキャンしない時間をミリ秒単位で設定します。
-                beaconManager.backgroundBetweenScanPeriod = 5000
+                beaconManager.backgroundBetweenScanPeriod = 15000
 
                 // ビーコンを探す各 Bluetooth LE スキャン サイクルの期間をミリ秒単位で設定します。
                 //この関数は、bind を呼び出す前、またはバックグラウンド/フォアグラウンドを切り替えるときに期間を設定するために使用されます。
                 //すでに実行中のスキャン (次のサイクルの開始時) に影響を与えるには、updateScanPeriods を呼び出します。
                 beaconManager.backgroundScanPeriod = 10000
 
-                beaconManager.foregroundBetweenScanPeriod = 0
+                beaconManager.foregroundBetweenScanPeriod = 5000
                 beaconManager.foregroundScanPeriod = 3000
 
                 BeaconManager.setRegionExitPeriod(4*1000) //未検知になって4秒でExitと判定

@@ -105,53 +105,8 @@ class MyHomeWidget extends StatelessWidget {
 
             }),
 
-/*
-            Obx(() {
-              var deviceSet = Get.find<MyController>().myDeviceSet.value;
-              //var numberOfDevices =deviceSet.getNumberOfDevices();
 
-              var validDeviceList = deviceSet.getValidDevices();
-              var validNumberOfDevices = validDeviceList.length;
-
-              return Column(
-                children: List.generate(validNumberOfDevices, (index) {
-                  // それぞれのデバイスについての情報を表示する.
-                  var device = deviceSet.devices!.elementAt(index);
-
-                  var strTemperature = '温度: --.- ℃';
-                  if (device.isTheTemperatureAvailable()) {
-                    strTemperature = '温度: ${device.getTemperature()} ℃';
-                  }
-
-                  var strHumidity = '湿度: -- %';
-                  if (device.isTheHumidityAvailable()) {
-                    strHumidity = '湿度: ${device.getHumidity()} %';
-                  }
-
-                  var strPressure = '気圧: ---.- hPa';
-                  if (device.isThePressureAvailable()) {
-                    strPressure = '気圧: ${device.getPressure()} hPa';
-                  }
-
-                  return Card(
-                    child: Column(
-                      children: [
-                        ListTile(
-                          title: Text('センサ名: ${device.nickname}'),
-                          subtitle: Text('BDADDR: ${device.bleAddr}'),
-                        ),
-                        Text(strTemperature),
-                        Text(strHumidity),
-                        Text(strPressure),
-                      ],
-                    )
-                  );
-                }),
-              );
-            }),
-
- */
-
+            /*
             // -----------------------------------------------------------------------------------------
             // テスト用のテキストフィールドの定義.
             Row(
@@ -255,6 +210,7 @@ class MyHomeWidget extends StatelessWidget {
               },
               child: const Text('ダミーデータ読込')
             ),
+             */
 
           ],
         ),

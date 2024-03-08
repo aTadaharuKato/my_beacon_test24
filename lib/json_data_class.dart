@@ -85,9 +85,16 @@ class KDevice {
   double _temperature = double.negativeInfinity;
   double _humidity = double.negativeInfinity;
   double _pressure = double.negativeInfinity;
+  DateTime _timeStamp = DateTime.now();
 
-  bool setSensorData([double? temperature, double? humidity, double? pressure]) {
+  bool setSensorData([double? temperature, double? humidity, double? pressure, DateTime? timeStamp]) {
     bool fModified = false;
+    if (timeStamp != null) {
+      if (_timeStamp != timeStamp) {
+        fModified = true;
+        _timeStamp = timeStamp;
+      }
+    }
     if (temperature != null) {
       if (_temperature != temperature) {
         fModified = true;
