@@ -7,6 +7,11 @@ class KDeviceSet {
 
   KDeviceSet({this.devices});
 
+  void addDevice(KDevice newDevice) {
+    devices ??= [];
+    devices?.add(newDevice);
+  }
+
   /// index で指定するデバイスを devices リストから削除します.
   bool removeDevice(int index) {
     log.t('🍇KDeviceSet#removeDevice(index:$index) BEGIN');

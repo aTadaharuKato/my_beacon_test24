@@ -111,12 +111,12 @@ class MyController extends GetxController {
                     PopScope(
                       canPop: false,
                       child: AlertDialog(
-                        title: Text('新しいデバイスが見つかりました!'),
+                        title: const Text('新しいデバイスが見つかりました!'),
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text('BDADDR: $deviceAddr'),
-                            Text('このデバイスを登録しますか？'),
+                            const Text('このデバイスを登録しますか？'),
                           ],
                         ),
                         actions: [
@@ -124,19 +124,21 @@ class MyController extends GetxController {
                               onPressed: () {
                                 Get.back();
                                 KDevice newDevice = KDevice(bleAddr: deviceAddr, nickname: '無視するデバイス', fShow: false);
-                                myDeviceSet.devices?.add(newDevice);
+                                //myDeviceSet.devices?.add(newDevice);
+                                myDeviceSet.addDevice(newDevice);
                                 update();
                               },
-                              child: Text('無視')
+                              child: const Text('無視')
                           ),
                           OutlinedButton(
                               onPressed: () {
                                 Get.back();
                                 KDevice newDevice = KDevice(bleAddr: deviceAddr, nickname: '新しいデバイス', fShow: true);
-                                myDeviceSet.devices?.add(newDevice);
+                                //myDeviceSet.devices?.add(newDevice);
+                                myDeviceSet.addDevice(newDevice);
                                 update();
                               },
-                              child: Text('登録')
+                              child: const Text('登録')
                           ),
                         ],
                       ),
