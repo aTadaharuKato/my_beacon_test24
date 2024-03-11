@@ -1,4 +1,4 @@
-package com.example.my_beacon_test24
+package com.katomyapp.my_beacon_test24
 
 import android.app.Notification
 import android.app.PendingIntent

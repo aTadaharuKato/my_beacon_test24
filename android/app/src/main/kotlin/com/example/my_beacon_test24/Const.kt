@@ -1,4 +1,4 @@
-package com.example.my_beacon_test24
+package com.katomyapp.my_beacon_test24
 
 import android.util.Base64
 
