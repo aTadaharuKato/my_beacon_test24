@@ -179,7 +179,7 @@ class MyWidget3 extends StatelessWidget {
             SizedBox(height: size.height / 4),
             SizedBox(
               height: 100,
-              child: Image.asset('assets/MyIcon5s.png'),
+              child: Image.asset('assets/abcs_out2_a.png'),
             ),
             Text(Get.find<MyController>().appName, style: const TextStyle(fontSize: 20)),
             Text('バージョン ${Get.find<MyController>().appVer} (${Get.find<MyController>().buildNumber})'),

@@ -1,4 +1,6 @@
 
+import 'package:intl/intl.dart';
+
 import 'main.dart';
 
 // https://javiercbk.github.io/json_to_dart/ で作成したものを元にしている.
@@ -93,6 +95,7 @@ class KDevice {
   DateTime _timeStamp = DateTime.now();
 
   bool setSensorData([double? temperature, double? humidity, double? pressure, DateTime? timeStamp]) {
+    log.t('KDevice#setSensorData(), $timeStamp');
     bool fModified = false;
     if (timeStamp != null) {
       if (_timeStamp != timeStamp) {
@@ -118,7 +121,12 @@ class KDevice {
         _pressure = pressure;
       }
     }
+    //log.t('() KDevice#setSensorData() return:$fModified');
     return fModified;
+  }
+
+  String getDate() {
+    return DateFormat('M/d HH:mm:ss').format(_timeStamp);
   }
 
   bool isTheTemperatureAvailable() {

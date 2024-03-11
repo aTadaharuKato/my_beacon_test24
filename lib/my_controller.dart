@@ -155,7 +155,7 @@ class MyController extends GetxController {
                   double? temperature = data['temperature'];
                   double? humidity = data['humidity'];
                   double? pressure = data['pressure'];
-                  if (device.setSensorData(temperature, humidity, pressure)) {
+                  if (device.setSensorData(temperature, humidity, pressure, DateTime.now())) {
                     update();
                   }
                   break;

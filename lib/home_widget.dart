@@ -61,7 +61,7 @@ class MyHomeWidget extends StatelessWidget {
             const Text('センサの現在値', style: TextStyle(fontSize: 18)),
 
             GetBuilder<MyController>(builder: (controller) {
-              log.t('🍎🍎🍎🍎 MyHomeWidget');
+              log.t('🍎🍎🍎🍎 MyHomeWidget#builder()');
               var deviceSet = controller.myDeviceSet;
               var validDeviceList = deviceSet.getValidDevices();
               var validNumberOfDevices = validDeviceList.length;
@@ -72,20 +72,32 @@ class MyHomeWidget extends StatelessWidget {
                   //var device = deviceSet.devices!.elementAt(index);
                   var device = validDeviceList.elementAt(index);
 
+                  var fDataValid = false;
+
                   var strTemperature = '温度: --.- ℃';
                   if (device.isTheTemperatureAvailable()) {
                     strTemperature = '温度: ${device.getTemperature()} ℃';
+                    fDataValid = true;
                   }
 
                   var strHumidity = '湿度: -- %';
                   if (device.isTheHumidityAvailable()) {
                     strHumidity = '湿度: ${device.getHumidity()} %';
+                    fDataValid = true;
                   }
 
                   var strPressure = '気圧: ---.- hPa';
                   if (device.isThePressureAvailable()) {
                     strPressure = '気圧: ${device.getPressure()} hPa';
+                    fDataValid = true;
                   }
+
+                  var strDate = '日時: -/- --:--:--';
+                  if (fDataValid) {
+                    strDate = '日時: ${device.getDate()}';
+                  }
+                  log.t('sensor, [$strDate]');
+                  //var strDate = DateFormat('MM/dd HH:mm:ss').format(device.);
 
                   return Card(
                       child: Column(
@@ -97,6 +109,7 @@ class MyHomeWidget extends StatelessWidget {
                           Text(strTemperature),
                           Text(strHumidity),
                           Text(strPressure),
+                          Text(strDate),
                         ],
                       )
                   );
