@@ -33,7 +33,7 @@
 
 
     <application
-        android:label="my_beacon_test24"
+        android:label="温湿度気圧センサモニタ"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon"
         android:usesCleartextTraffic="true">

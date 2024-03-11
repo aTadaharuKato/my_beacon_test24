@@ -22,6 +22,13 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+// added by Kato, 2024/3/11
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace "com.example.my_beacon_test24"
     compileSdkVersion flutter.compileSdkVersion
@@ -53,11 +60,27 @@ android {
         versionName flutterVersionName
     }
 
+    // added by Kato, 2024/3/11
+    signingConfigs {
+        release {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+            storePassword keystoreProperties['storePassword']
+        }
+
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
+            //       リリース ビルドに独自の署名構成を追加します。
             // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
+            // 現時点ではデバッグキーを使用して署名しているため、`flutter run --release` は機能します。
+            //signingConfig signingConfigs.debug
+
+            // added by Kato, 2024/3/11
+            signingConfig signingConfigs.release
         }
     }
 }
