@@ -1,6 +1,8 @@
 # my_beacon_test24
 
-A new Flutter project.
+温湿度気圧センサビーコン APZ-110 から，温度，湿度，気圧値を読み取り表示するアプリ。
+Google Play で，内部テストで公開までした。
+ただし，あくまでアプリ公開の練習用であり，一般公開までもっていくつもりはない。
 
 ## Getting Started
 
