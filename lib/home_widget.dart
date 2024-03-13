@@ -29,6 +29,7 @@ class MyHomeWidget extends StatelessWidget {
                   flex: 19,
                   child: Row(
                     children: [
+                      // 切り替えスイッチ「センサのスキャン状態」
                       Obx(() => Switch(
                         value: Get.find<MyController>().fBeaconScanning.value,
                         onChanged: (v) async {
@@ -55,6 +56,22 @@ class MyHomeWidget extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+
+            // Test Code.
+            const SizedBox(height: 32),
+            const Text('Bluetooth 権限のリクエスト', style: TextStyle(fontSize: 18)),
+            OutlinedButton(
+              onPressed: () async {
+                log.t('「Bluetooth 権限のリクエスト」ボタンがおされました.');
+                try {
+                  var ret = await MyController.platform.invokeMethod('req_ble_permissions');
+                  log.t('ネイティブメソッド req_ble_permissions の戻り値: $ret');
+                } catch (e) {
+                  log.t('ネイティブ呼び出しで例外が発生しました. $e');
+                }
+              },
+              child: const Text('Bluetooth 権限のリクエスト'),
             ),
 
             const SizedBox(height: 32),

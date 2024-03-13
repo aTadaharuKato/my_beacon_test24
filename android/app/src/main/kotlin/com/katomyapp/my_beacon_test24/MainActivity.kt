@@ -25,6 +25,8 @@ class MainActivity: FlutterActivity(), MyNativeMsgSender {
         super.onCreate(savedInstanceState)
         HappyPathManager.curContext = this
 
+        HexDump.dump(byteArrayOf(0, 1, 2), 0, 3);
+
         // 通知チャンネルの準備.
         getMyForegroundServiceNotificationChannel();
         getMyRegionNotificationChannel();
@@ -60,6 +62,8 @@ class MainActivity: FlutterActivity(), MyNativeMsgSender {
         Log.i(Const.TAG, "🍙MainActivity#onDestroy() DONE")
     }
 
+    private var resultMap = emptyMap<String, java.io.Serializable>()
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         Log.i(Const.TAG, "🍙MainActivity#configureFlutterEngine() BEGIN")
         super.configureFlutterEngine(flutterEngine)
@@ -83,6 +87,11 @@ class MainActivity: FlutterActivity(), MyNativeMsgSender {
                         result.success(12345)
                     }
                      */
+
+                    "req_ble_permissions" -> {
+
+                    }
+
                     "start_beacon_scan" -> {
                         HappyPathManager.iBeaconScanStart();
                         result.success(56789)
