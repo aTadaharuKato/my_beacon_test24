@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
     Get.put(MyController());
 
     var ret = GetMaterialApp(
-      title: 'My Beacon Test \'24',
+      title: '環境センサ X Viewer',
       theme: ThemeData(
         brightness: Brightness.light,
         primarySwatch: Colors.blue,
@@ -82,7 +82,7 @@ class MyHomePage extends StatelessWidget {
 
     var ret = Scaffold(
       appBar: AppBar(
-        title: const Text('My Beacon Test \'24'),
+        title: const Text('環境センサ X Viewer'),
       ),
       drawer: Drawer(
         child: ListView(
