@@ -26,7 +26,7 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
     )
     var curContext: Any? = null
 
-    var lasNotifyTick = 0L
+    private var lastNotifyTick = 0L
 
     init {
         Log.i(Const.TAG, "🍙HappyPathManager#init BEGIN")
@@ -65,7 +65,7 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
     fun iBeaconScanStart() {
         Log.i(Const.TAG, "🍙HappyPathManager#iBeaconScanStart() BEGIN")
 
-        lasNotifyTick = 0
+        lastNotifyTick = 0
 
         (curContext as? Context)?.also { context ->
 
@@ -183,7 +183,7 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
         Log.i(Const.TAG, "🍙HappyPathManager#didRangeBeaconsInRegion(beacons:$beacons, region:$region)")
 
         var curtick = System.currentTimeMillis()
-        var elapsed = curtick - lasNotifyTick
+        var elapsed = curtick - lastNotifyTick
         if (elapsed < Const.MIN_NOTIFY_INTERVAL_MILLIS) {
             Log.i(Const.TAG, "🍙elapsed $elapsed mills, skip this data")
         }
@@ -220,7 +220,7 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
                         "device" to beacon.bluetoothAddress,
                     ),
                 ))
-                lasNotifyTick = curtick
+                lastNotifyTick = curtick
             }
         }
     }

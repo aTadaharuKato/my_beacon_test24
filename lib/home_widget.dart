@@ -1,10 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:my_beacon_test24/my_controller.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import 'json_data_class.dart';
 import 'main.dart';
 
 class MyHomeWidget extends StatelessWidget {

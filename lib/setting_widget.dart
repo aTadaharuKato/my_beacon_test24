@@ -29,13 +29,13 @@ class MySettingWidget extends StatelessWidget {
                 log.t('🍓登録デバイスがありません!');
                 return Container(
                   width: double.infinity,
-                  margin: EdgeInsets.all(8),
+                  margin: const EdgeInsets.all(8),
                   color: Colors.indigo.shade100,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text('登録デバイスがありません',style: Theme.of(context).textTheme.titleMedium),
-                      Text('デバイスを検索して，登録しましょう.'),
+                      const Text('デバイスを検索して，登録しましょう.'),
                     ],
                   )
                 );

@@ -167,11 +167,10 @@ class MainActivity: FlutterActivity(), MyNativeMsgSender {
         val channelId2: String = Const.MY_REGION_NOTIFY_CHANNEL_ID
 
         Log.i(Const.TAG, "channelId1:$channelId1, channelId2:$channelId2")
-        var fIsBlocked = false
         val channel1 = manager.getNotificationChannel(channelId1)
         val channel2 = manager.getNotificationChannel(channelId2)
-        fIsBlocked = (channel1.importance == NotificationManager.IMPORTANCE_NONE)
-                || ((channel2.importance == NotificationManager.IMPORTANCE_NONE))
+        val fIsBlocked = (channel1.importance == NotificationManager.IMPORTANCE_NONE)
+                      || (channel2.importance == NotificationManager.IMPORTANCE_NONE)
         return fIsBlocked
     }
 
