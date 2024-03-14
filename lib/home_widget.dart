@@ -38,11 +38,17 @@ class MyHomeWidget extends StatelessWidget {
                             try {
                               int? ret;
                               if (v) {
-                                ret = await MyController.platform.invokeMethod('start_beacon_scan');
+                                Get.find<MyController>().permissionFlow1(
+                                  () async {
+                                    ret = await MyController.platform.invokeMethod('start_beacon_scan');
+                                    log.t('ret: $ret');
+                                  },
+                                  null
+                                );
                               } else {
                                 ret = await MyController.platform.invokeMethod('stop_beacon_scan');
+                                log.t('ret: $ret');
                               }
-                              log.t('ret: $ret');
                               Get.find<MyController>().fBeaconScanning.value = v;
                             } catch (e) {
                               log.t('🍓ネイティブ呼び出しで例外が発生しました. $e');
@@ -57,83 +63,6 @@ class MyHomeWidget extends StatelessWidget {
                 ),
               ],
             ),
-
-            // Test Code.
-            const SizedBox(height: 32),
-            const Text('Bluetooth 権限のリクエスト', style: TextStyle(fontSize: 18)),
-            OutlinedButton(
-              onPressed: () async {
-                log.t('🍓「Bluetooth 権限のリクエスト」ボタンがおされました.');
-                try {
-                  var ret = await MyController.platform.invokeMethod('req_ble_permissions');
-                  log.t('🍓ネイティブメソッド req_ble_permissions の戻り値: $ret');
-                } catch (e) {
-                  log.t('🍓ネイティブ呼び出しで例外が発生しました. $e');
-                }
-              },
-              child: const Text('Bluetooth 権限のリクエスト'),
-            ),
-
-            const SizedBox(height: 32),
-            const Text('Bluetooth の ON', style: TextStyle(fontSize: 18)),
-            OutlinedButton(
-              onPressed: () async {
-                log.t('🍓「Bluetooth の ON」ボタンがおされました.');
-                try {
-                  var ret = await MyController.platform.invokeMethod('req_bluetooth_enable');
-                  log.t('🍓ネイティブメソッド req_bluetooth_enable の戻り値: $ret');
-                } catch (e) {
-                  log.t('🍓ネイティブ呼び出しで例外が発生しました. $e');
-                }
-              },
-              child: const Text('Bluetooth の ON'),
-            ),
-
-            const SizedBox(height: 32),
-            const Text('位置情報権限のリクエスト', style: TextStyle(fontSize: 18)),
-            OutlinedButton(
-              onPressed: () async {
-                log.t('🍓「位置情報権限のリクエスト」ボタンがおされました.');
-                try {
-                  var ret = await MyController.platform.invokeMethod('req_loc_permissions');
-                  log.t('🍓ネイティブメソッド req_loc_permissions の戻り値: $ret');
-                } catch (e) {
-                  log.t('🍓ネイティブ呼び出しで例外が発生しました. $e');
-                }
-              },
-              child: const Text('位置情報権限のリクエスト'),
-            ),
-
-            const SizedBox(height: 32),
-            const Text('通知権限のリクエスト', style: TextStyle(fontSize: 18)),
-            OutlinedButton(
-              onPressed: () async {
-                log.t('🍓「通知権限のリクエスト」ボタンがおされました.');
-                try {
-                  var ret = await MyController.platform.invokeMethod('req_notify_permissions');
-                  log.t('🍓ネイティブメソッド req_notify_permissions の戻り値: $ret');
-                } catch (e) {
-                  log.t('🍓ネイティブ呼び出しで例外が発生しました. $e');
-                }
-              },
-              child: const Text('通知権限のリクエスト'),
-            ),
-
-            const SizedBox(height: 32),
-            const Text('設定', style: TextStyle(fontSize: 18)),
-            OutlinedButton(
-              onPressed: () async {
-                log.t('🍓「設定」ボタンがおされました.');
-                try {
-                  var ret = await MyController.platform.invokeMethod('req_setting');
-                  log.t('🍓ネイティブメソッド req_setting の戻り値: $ret');
-                } catch (e) {
-                  log.t('🍓ネイティブ呼び出しで例外が発生しました. $e');
-                }
-              },
-              child: const Text('設定'),
-            ),
-
 
             const SizedBox(height: 32),
             const Text('センサの現在値', style: TextStyle(fontSize: 18)),

@@ -298,6 +298,48 @@ class MainActivity: FlutterActivity(), MyNativeMsgSender {
                         }
                     }
 
+                    "check_permissions" -> {
+                        var fPermissionBluetooth = false
+                        val permissionOfBleScan    = if (Build.VERSION.SDK_INT <= 30) PERMISSION_GRANTED
+                        else checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN)
+                        val permissionOfBleConnect = if (Build.VERSION.SDK_INT <= 30) PERMISSION_GRANTED
+                        else checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)
+                        Log.i(Const.TAG, "🍙BLUETOOTH_SCAN: permission=$permissionOfBleScan");
+                        Log.i(Const.TAG, "🍙BLUETOOTH_CONNECT: permission=$permissionOfBleConnect");
+                        if ((permissionOfBleScan == PERMISSION_GRANTED) && (permissionOfBleConnect == PERMISSION_GRANTED)) {
+                            fPermissionBluetooth = true
+                        }
+                        //
+                        val fBluetoothPower = mBluetoothAdapter.isEnabled
+                        //
+                        var fPermissionNotify = true
+                        if (Build.VERSION.SDK_INT >= 33) {
+                            val permissionOfNotification = checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
+                            Log.i(Const.TAG, "Notification: permission=$permissionOfNotification")
+                            if (permissionOfNotification != PERMISSION_GRANTED) {
+                                fPermissionNotify = false
+                            } else {
+                                fPermissionNotify = !isChannelBlocked()
+                            }
+                        }
+                        //
+                        var fPermissionLocation = false
+                        val permissionOfCoarseLocation = checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+                        val permissionOfFineLocation = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                        Log.i(Const.TAG, "🍙Coarse Location: permission=$permissionOfCoarseLocation");
+                        Log.i(Const.TAG, "🍙Fine Location: permission=$permissionOfFineLocation");
+                        if ((permissionOfCoarseLocation == PERMISSION_GRANTED) && (permissionOfFineLocation == PERMISSION_GRANTED)) {
+                            fPermissionLocation = true
+                        }
+                        result.success(mapOf(
+                            "bluetooth_permission" to fPermissionBluetooth,
+                            "bluetooth_power" to fBluetoothPower,
+                            "notification_permission" to fPermissionNotify,
+                            "location_permission" to fPermissionLocation,
+                            )
+                        )
+                    }
+
                     "start_beacon_scan" -> {
                         HappyPathManager.iBeaconScanStart();
                         result.success(56789)

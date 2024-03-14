@@ -227,4 +227,286 @@ class MyController extends GetxController {
     fHomePageReady.value = true;
     log.t('🍓 MyController#initialTask() DONE');
   }
+
+
+  void mySimpleDialogShow(String title, String msg, VoidCallback? closedCB) {
+    Get.dialog(
+        barrierDismissible: false, // ダイアログ領域外をタップしたときに，ダイアログを閉じないようにする.
+        PopScope(
+            canPop: false,
+            child: AlertDialog(
+                title: Text(title),
+                content: Text(msg),
+                actions: [
+                  // 「キャンセル」ボタン.
+                  OutlinedButton(
+                      onPressed: closedCB,
+                      child: const Text('OK')
+                  ),
+                ]
+            )
+        )
+    );
+  }
+
+
+  void permissionFlow1(VoidCallback? successCB, VoidCallback? failedCB) async {
+    log.t('🍓MyController#permissionFlow1() BEGIN');
+    try {
+      // ネイティブメソッド "check_permission" を呼び出す
+      // すべて true ならば，リクエストフローは成功で終了。
+      Map ret = await platform.invokeMethod('check_permissions');
+      bool fBluetoothPermission = ret['bluetooth_permission'] ?? false;
+      bool fBluetoothPower = ret['bluetooth_power'] ?? false;
+      bool fNotificationPermission = ret['notification_permission'] ?? false;
+      bool fLocationPermission = ret['location_permission'] ?? false;
+      log.t('🍓fBluetoothPermission: $fBluetoothPermission');
+      log.t('🍓fBluetoothPower: $fBluetoothPower');
+      log.t('🍓fNotificationPermission: $fNotificationPermission');
+      log.t('🍓fLocationPermission: $fLocationPermission');
+      if (fBluetoothPermission && fBluetoothPower && fNotificationPermission && fLocationPermission) {
+        // リクエストフローは成功で終了。
+        if (successCB != null) {
+          successCB();
+        }
+        return;
+      }
+      // 1.
+      // ・bluetooth_permission が true の場合，「2.」へ
+      // ・「本アプリはiBeacon検出のため，Bluetoothを使用します。\n付近のデバイスの検出，接続，相対位置の特定を，本アプリに許可してください。」のダイアログ表示
+      // ・ネイティブメソッド "req_ble_permissions" を呼び出す。
+      // ・「2.」へ
+      if (fBluetoothPermission) {
+        _permissionFlow2(ret, successCB, failedCB);
+      } else {
+        mySimpleDialogShow(
+          'お願い',
+          '本アプリはiBeacon検出のため，Bluetoothを使用します。\n付近のデバイスの検出，接続，相対位置の特定を，本アプリに許可してください。',
+          () async {
+            Get.back();
+            var ret1 = await platform.invokeMethod('req_ble_permissions');
+            log.t('🍓ネイティブメソッド req_ble_permissions の戻り値: $ret1');
+            _permissionFlow2(ret, successCB, failedCB);
+          }
+        );
+      }
+    } catch (e) {
+      log.t('🍓ネイティブ呼び出しで例外が発生しました. $e');
+      if (failedCB != null) {
+        failedCB();
+      }
+    }
+    log.t('🍓MyController#permissionFlow1() DONE');
+  }
+
+  // 2.
+  // ・bluetooth_power が true の場合，「3.」へ
+  // ・ネイティブメソッド "req_bluetooth_enable" を呼び出す。
+  // ・「3.」へ
+  void _permissionFlow2(Map map, VoidCallback? successCB, VoidCallback? failedCB) async {
+    log.t('🍓MyController#_permissionFlow2() BEGIN');
+    try {
+      bool fBluetoothPower = map['bluetooth_power'] ?? false;
+      log.t('🍓fBluetoothPower: $fBluetoothPower');
+      if (!fBluetoothPower) {
+        var ret2 = await platform.invokeMethod('req_bluetooth_enable');
+        log.t('🍓ネイティブメソッド req_bluetooth_enable の戻り値: $ret2');
+      }
+      _permissionFlow3(map, successCB, failedCB);
+    } catch (e) {
+      log.t('🍓ネイティブ呼び出しで例外が発生しました. $e');
+      if (failedCB != null) {
+        failedCB();
+      }
+    }
+    log.t('🍓MyController#_permissionFlow2() DONE');
+  }
+
+  // 3.
+  // ・location_permission が true の場合，「4.」へ
+  // ・「本アプリは iBeacon を検出するため，位置情報の権限が必要です。\nこのデバイスの正確な位置情報へのアクセスを，本アプリに許可してください。」のダイアログ表示
+  // ・ネイティブメソッド "req_loc_permissions" を呼び出す。
+  // ・「4.」へ
+  void _permissionFlow3(Map map, VoidCallback? successCB, VoidCallback? failedCB) async {
+    log.t('🍓MyController#_permissionFlow3() BEGIN');
+    try {
+      bool fLocationPermission = map['location_permission'] ?? false;
+      log.t('🍓fLocationPermission: $fLocationPermission');
+      if (fLocationPermission) {
+        _permissionFlow4(map, successCB, failedCB);
+      } else {
+        mySimpleDialogShow(
+          'お願い',
+          '本アプリは iBeacon を検出するため，位置情報の権限が必要です。\nこのデバイスの正確な位置情報へのアクセスを，本アプリに許可してください。',
+          () async {
+            Get.back();
+            var ret3 = await platform.invokeMethod('req_loc_permissions');
+            log.t('🍓ネイティブメソッド req_loc_permissions の戻り値: $ret3');
+            _permissionFlow4(map, successCB, failedCB);
+          }
+        );
+      }
+    } catch (e) {
+      log.t('🍓ネイティブ呼び出しで例外が発生しました. $e');
+      if (failedCB != null) {
+        failedCB();
+      }
+    }
+    log.t('🍓MyController#_permissionFlow3() DONE');
+  }
+
+
+  // 4.
+  // ・req_notify_permissions が true の場合，「5.」へ
+  // ・「本アプリは iBeacon を監視するため，フォアグラウンドサービスを使用します。通知の送信の権限はそのために必要です。通知の送信の権限を，本アプリに許可してください。」のダイアログ表示
+  // ・ネイティブメソッド "req_notify_permissions" を呼び出す。
+  // ・「5.」へ
+  void _permissionFlow4(Map map, VoidCallback? successCB, VoidCallback? failedCB) async {
+    log.t('🍓MyController#_permissionFlow4() BEGIN');
+    try {
+      bool fNotificationPermission = map['notification_permission'] ?? false;
+      log.t('🍓fNotificationPermission: $fNotificationPermission');
+      if (fNotificationPermission) {
+        _permissionFlow5(successCB, failedCB);
+      } else {
+        mySimpleDialogShow(
+          'お願い',
+          '本アプリは iBeacon を監視するため，フォアグラウンドサービスを使用します。\nそのために通知の送信の権限が必要です。\n通知の送信の権限を，本アプリに許可してください。',
+          () async {
+            Get.back();
+            var ret4 = await platform.invokeMethod('req_notify_permissions');
+            log.t('🍓ネイティブメソッド req_notify_permissions の戻り値: $ret4');
+            _permissionFlow5(successCB, failedCB);
+          }
+        );
+      }
+    } catch (e) {
+      log.t('🍓ネイティブ呼び出しで例外が発生しました. $e');
+      if (failedCB != null) {
+        failedCB();
+      }
+    }
+    log.t('🍓MyController#_permissionFlow4() DONE');
+  }
+
+  // 5.
+  // ・再度，ネイティブメソッド "check_permission" を呼び出す
+  // ・すべて true ならば，リクエストフローは成功で終了。
+  // ・そうでないならば，以下のダイアログを表示する。
+  //   センサをスキャンするために，以下の権限が不足しています。これらの権限を許可してください。
+  //     付近のデバイス (Bluetooth)
+  //     Bluetooth が OFF になっている
+  //     位置情報
+  //     通知
+  // ・ダイアログが閉じられたら，ネイティブメソッド "req_setting" を呼び出す。
+  void _permissionFlow5(VoidCallback? successCB, VoidCallback? failedCB) async {
+    log.t('🍓MyController#_permissionFlow5() BEGIN');
+    try {
+      Map ret = await platform.invokeMethod('check_permissions');
+      log.t('🍓ネイティブメソッド check_permissions の戻り値: $ret');
+      bool fBluetoothPermission = ret['bluetooth_permission'] ?? false;
+      bool fBluetoothPower = ret['bluetooth_power'] ?? false;
+      bool fNotificationPermission = ret['notification_permission'] ?? false;
+      bool fLocationPermission = ret['location_permission'] ?? false;
+      log.t('🍓fBluetoothPermission: $fBluetoothPermission');
+      log.t('🍓fBluetoothPower: $fBluetoothPower');
+      log.t('🍓fNotificationPermission: $fNotificationPermission');
+      log.t('🍓fLocationPermission: $fLocationPermission');
+      if (fBluetoothPermission && fBluetoothPower && fNotificationPermission && fLocationPermission) {
+        // リクエストフローは成功で終了。
+        if (successCB != null) {
+          successCB();
+        }
+        return;
+      }
+      var msg = 'センサをスキャンするために，以下の権限が不足しています。これらの権限を許可してください。';
+      if (!fBluetoothPermission) {
+        msg += '\n•付近のデバイス (Bluetooth)';
+      }
+      if (!fBluetoothPower) {
+        msg += '\n•Bluetooth が OFF になっている';
+      }
+      if (!fLocationPermission) {
+        msg += '\n•位置情報';
+      }
+      if (!fNotificationPermission) {
+        msg += '\n•通知';
+      }
+      mySimpleDialogShow(
+          'お願い', msg,
+          () async {
+            Get.back();
+            var ret5 = await platform.invokeMethod('req_setting');
+            log.t('🍓ネイティブメソッド req_notify_permissions の戻り値: $ret5');
+            _permissionFlow6(successCB, failedCB);
+          }
+      );
+    } catch (e) {
+      log.t('🍓ネイティブ呼び出しで例外が発生しました. $e');
+      if (failedCB != null) {
+        failedCB();
+      }
+    }
+    log.t('🍓MyController#_permissionFlow5() DONE');
+  }
+
+
+  // ・また再度，ネイティブメソッド "check_permission" を呼び出す
+  // ・すべて true ならば，リクエストフローは成功で終了。
+  // ・false があるならば，以下のダイアログを表示して，失敗を確定する。
+  // ・以下の権限が不足しているため，センサのスキャンを開始できませんでした。
+  //     付近のデバイス (Bluetooth)
+  //     Bluetooth が OFF になっている
+  //     位置情報
+  //     通知
+  void _permissionFlow6(VoidCallback? successCB, VoidCallback? failedCB) async {
+    log.t('🍓MyController#permissionFlow6() BEGIN');
+    try {
+      Map ret = await platform.invokeMethod('check_permissions');
+      log.t('🍓ネイティブメソッド check_permissions の戻り値: $ret');
+      bool fBluetoothPermission = ret['bluetooth_permission'] ?? false;
+      bool fBluetoothPower = ret['bluetooth_power'] ?? false;
+      bool fNotificationPermission = ret['notification_permission'] ?? false;
+      bool fLocationPermission = ret['location_permission'] ?? false;
+      log.t('🍓fBluetoothPermission: $fBluetoothPermission');
+      log.t('🍓fBluetoothPower: $fBluetoothPower');
+      log.t('🍓fNotificationPermission: $fNotificationPermission');
+      log.t('🍓fLocationPermission: $fLocationPermission');
+      if (fBluetoothPermission && fBluetoothPower && fNotificationPermission && fLocationPermission) {
+        // リクエストフローは成功で終了。
+        if (successCB != null) {
+          successCB();
+        }
+        return;
+      }
+      var msg = '以下の権限が不足しているため，センサのスキャンを開始できませんでした。 ';
+      if (!fBluetoothPermission) {
+        msg += '\n•付近のデバイス (Bluetooth)';
+      }
+      if (!fBluetoothPower) {
+        msg += '\n•Bluetooth が OFF になっている';
+      }
+      if (!fLocationPermission) {
+        msg += '\n•位置情報';
+      }
+      if (!fNotificationPermission) {
+        msg += '\n•通知';
+      }
+      mySimpleDialogShow(
+        'お願い', msg,
+        () async {
+          Get.back();
+          if (failedCB != null) {
+            failedCB();
+          }
+        }
+      );
+    } catch (e) {
+      log.t('🍓ネイティブ呼び出しで例外が発生しました. $e');
+      if (failedCB != null) {
+        failedCB();
+      }
+    }
+    log.t('🍓MyController#permissionFlow6() DONE');
+  }
 }
