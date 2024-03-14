@@ -20,6 +20,13 @@ class Const {
         const val MY_REGION_NOTIFY_MESSAGE = "リージョンに変化がありました"
 
 
+        // requestPermissions() の requestCode 値
+        const val MY_REQUEST_BLE_SCAN_AND_CONNECT = 1001
+        const val MY_REQUEST_SEQ_LOCATION_COARSE_AND_FINE = 1002
+        const val MY_REQUEST_NOTIFICATION = 1003
+
+        const val REQUEST_ENABLEBLUETOOTH = 1
+        const val MYREQUEST_LOCATION = 2
 
         // 前回通知して，次に通知する，最短の間隔.
         const val MIN_NOTIFY_INTERVAL_MILLIS = 10000
