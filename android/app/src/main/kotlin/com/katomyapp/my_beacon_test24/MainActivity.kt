@@ -375,7 +375,7 @@ class MainActivity: FlutterActivity(), MyNativeMsgSender {
 
                 if (fReqStartScanBeacon) {
                     fReqStartScanBeacon = false
-                    HappyPathManager.iBeaconScanStop();
+                    HappyPathManager.iBeaconScanStart();
 
                 } else if (HappyPathManager.fBeaconMonitoring) {
                     sendNativeMessage(mapOf(
