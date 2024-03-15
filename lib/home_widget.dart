@@ -33,20 +33,24 @@ class MyHomeWidget extends StatelessWidget {
                           log.t('🍓ビーコンスキャンスイッチが変更されました, v:$v');
                           if (Get.find<MyController>().fBeaconScanning.value != v) {
                             try {
-                              int? ret;
+                              //int? ret;
                               if (v) {
+                                // スキャンを開始する.
                                 Get.find<MyController>().permissionFlow1(
                                   () async {
-                                    ret = await MyController.platform.invokeMethod('start_beacon_scan');
-                                    log.t('ret: $ret');
+                                    // 成功時の処理
+                                    var ret = await MyController.platform.invokeMethod('start_beacon_scan');
+                                    log.t('🍓 ネイティブメソッド start_beacon_scan の戻り値, ret: $ret');
+                                    Get.find<MyController>().fBeaconScanning.value = true;
                                   },
                                   null
                                 );
                               } else {
-                                ret = await MyController.platform.invokeMethod('stop_beacon_scan');
-                                log.t('ret: $ret');
+                                var ret = await MyController.platform.invokeMethod('stop_beacon_scan');
+                                log.t('🍓 ネイティブメソッド stop_beacon_scan の戻り値, ret: $ret');
+                                Get.find<MyController>().fBeaconScanning.value = false;
                               }
-                              Get.find<MyController>().fBeaconScanning.value = v;
+
                             } catch (e) {
                               log.t('🍓ネイティブ呼び出しで例外が発生しました. $e');
                             }

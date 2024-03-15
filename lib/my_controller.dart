@@ -82,7 +82,11 @@ class MyController extends GetxController {
     _streamSubscription = channel.receiveBroadcastStream().listen((dynamic event) async {
         log.t('🍓myEventReceiverEnable, event is : ${event.runtimeType}, event: $event');
         var apiname = event['api'];
-        if (apiname == "notify_sensor_data") {
+        if (apiname == "notify_scan_status") {
+          bool fStatus = event['status'] ?? false;
+          fBeaconScanning.value = fStatus;
+
+        } else if (apiname == "notify_sensor_data") {
           var data = event['data'];
           try {
             String? deviceAddr = data['device'];
@@ -126,6 +130,7 @@ class MyController extends GetxController {
                                 KDevice newDevice = KDevice(bleAddr: deviceAddr, nickname: '無視するデバイス', fShow: false);
                                 //myDeviceSet.devices?.add(newDevice);
                                 myDeviceSet.addDevice(newDevice);
+                                storeDeviceSetToNVM();
                                 update();
                               },
                               child: const Text('無視')
@@ -136,6 +141,7 @@ class MyController extends GetxController {
                                 KDevice newDevice = KDevice(bleAddr: deviceAddr, nickname: '新しいデバイス', fShow: true);
                                 //myDeviceSet.devices?.add(newDevice);
                                 myDeviceSet.addDevice(newDevice);
+                                storeDeviceSetToNVM();
                                 update();
                               },
                               child: const Text('登録')
@@ -187,12 +193,13 @@ class MyController extends GetxController {
   }
 
   var fHomePageReady = false.obs;
-  var msg = ''.obs;
+  //var msg = ''.obs;
 
+  /// MyHomeWidget 構築前に呼ばれるメソッド.
   void initialTask() async {
     log.t('🍓 MyController#initialTask() BEGIN');
     await Future.delayed(const Duration(seconds: 3));
-    msg.value = 'You have a nice dog.';
+    //msg.value = 'You have a nice dog.';
 
     try {
       // SharedPreference から，'devices' をキーに文字列を encodedText に読み込む.

@@ -174,31 +174,18 @@ class MainActivity: FlutterActivity(), MyNativeMsgSender {
         return fIsBlocked
     }
 
+    var fReqStartScanBeacon = false
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         Log.i(Const.TAG, "🍙MainActivity#configureFlutterEngine() BEGIN")
         super.configureFlutterEngine(flutterEngine)
         val preferences = PreferenceManager.getDefaultSharedPreferences(this)
-        HappyPathManager.prepare(this, preferences)
+        fReqStartScanBeacon = HappyPathManager.prepare(this, preferences)
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, Const.MY_METHOD_CHAMMEL).setMethodCallHandler { call, result ->
             Log.i(Const.TAG, "🍙ネイティブメソッド呼出ハンドラ, method=${call.method} BEGIN")
             try {
                 when (call.method) {
-                    /*
-                    "create_dummy_data" -> {
-                        val jsonstr = call.arguments<String>()
-                        Log.i(Const.TAG, "🍙jsonstr:$jsonstr");
-                        jsonstr?.also {jsonstr ->
-                            preferences.edit().also { edit ->
-                                edit.putString("devices", Const.base64Encode(jsonstr))
-                                edit.apply()
-                            }
-                        }
-                        result.success(12345)
-                    }
-                     */
-
 
                     "req_setting" -> {
                         lockForPhase.withLock {
@@ -386,10 +373,21 @@ class MainActivity: FlutterActivity(), MyNativeMsgSender {
 
                 //val notifyDevices = mapOf("api" to "notify_devices")
 
-                val myMap = mapOf ("api" to "Hello, World!")
-                runOnUiThread {
-                    eventSink?.success(myMap)
+                if (fReqStartScanBeacon) {
+                    fReqStartScanBeacon = false
+                    HappyPathManager.iBeaconScanStop();
+
+                } else if (HappyPathManager.fBeaconMonitoring) {
+                    sendNativeMessage(mapOf(
+                        "api" to "notify_scan_status",
+                        "status" to true,
+                    ));
                 }
+
+                //val myMap = mapOf ("api" to "Hello, World!")
+                //runOnUiThread {
+                //    eventSink?.success(myMap)
+                //}
                 Log.i(Const.TAG, "🍙streamHandler#onListen() DONE")
             }
 
@@ -445,11 +443,13 @@ class MainActivity: FlutterActivity(), MyNativeMsgSender {
      * Flutter 側にメッセージを送ります.
      */
     override fun sendNativeMessage(arg: Any?) {
-        Log.i(Const.TAG, "🍙MainActivity#sendNativeMessage($arg) BEGIN")
         if (!fDestroyed) {
+            Log.i(Const.TAG, "🍙MainActivity#sendNativeMessage($arg) BEGIN")
             runOnUiThread {
                 eventSink?.success(arg)
             }
+        } else {
+            Log.i(Const.TAG, "🍙MainActivity#sendNativeMessage($arg) BEGIN, <But already destroyed>")
         }
         Log.i(Const.TAG, "🍙MainActivity#sendNativeMessage($arg) DONE")
     }

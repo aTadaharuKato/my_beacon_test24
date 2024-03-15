@@ -232,34 +232,21 @@ class MySettingWidget extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: () {
                 log.t('🍓「デバイスを検索する.」ボタンの onPressed() BEGIN');
-                Get.dialog(
-                  barrierDismissible: false, // ダイアログ領域外をタップしたときに，ダイアログを閉じないようにする.
-                  PopScope(
-                    canPop: false,
-                    child: AlertDialog(
-                      title: const Text('デバイスを検索しています.'),
-                      content: const Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CircularProgressIndicator(
-                              strokeWidth: 10,
-                            ),
-                          ]
-                      ),
-                      actions: [
-                        // 「キャンセル」ボタン.
-                        OutlinedButton(
-                            onPressed: () {
-                              Get.back();
-                              Get.find<MyController>().fDeviceSearching = false;
-                            },
-                            child: const Text('キャンセル')
-                        ),
-                      ]
-                    ),
-                  ),
-                );
-                Get.find<MyController>().fDeviceSearching = true;
+
+                if (Get.find<MyController>().fBeaconScanning == false) {
+                  Get.find<MyController>().permissionFlow1(
+                    () async {
+                      // 成功時の処理
+                      var ret = await MyController.platform.invokeMethod('start_beacon_scan');
+                      log.t('🍓 ネイティブメソッド start_beacon_scan の戻り値, ret: $ret');
+                      Get.find<MyController>().fBeaconScanning.value = true;
+                      showMySearchingDialog();
+                    },
+                    null,
+                  );
+                } else {
+                  showMySearchingDialog();
+                }
                 log.t('🍓「デバイスを検索する.」ボタンの onPressed() DONE');
               },
               icon: const Icon(Icons.add),
@@ -271,6 +258,37 @@ class MySettingWidget extends StatelessWidget {
     );
     log.t('🍓MySettingWidget#build() DONE');
     return ret;
+  }
+
+  void showMySearchingDialog() {
+    Get.dialog(
+      barrierDismissible: false, // ダイアログ領域外をタップしたときに，ダイアログを閉じないようにする.
+      PopScope(
+        canPop: false,
+        child: AlertDialog(
+          title: const Text('デバイスを検索しています.'),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(
+                strokeWidth: 10,
+              ),
+            ]
+          ),
+          actions: [
+            // 「キャンセル」ボタン.
+            OutlinedButton(
+              onPressed: () {
+                Get.back();
+                Get.find<MyController>().fDeviceSearching = false;
+              },
+              child: const Text('キャンセル')
+            ),
+          ]
+        ),
+      ),
+    );
+    Get.find<MyController>().fDeviceSearching = true;
   }
 }
 

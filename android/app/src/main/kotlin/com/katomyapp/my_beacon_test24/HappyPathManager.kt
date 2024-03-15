@@ -18,7 +18,7 @@ import java.util.UUID
 object HappyPathManager : MonitorNotifier, RangeNotifier {
 
     private var curPreferences: SharedPreferences? = null
-    private var fBeaconMonitoring = false
+    var fBeaconMonitoring = false
     private var fStarted = false
     private var myBeaconRegionList = listOf(
         //Region("region-all", null, null, null),
@@ -40,9 +40,11 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
         if (!fStarted) {
             fStarted = true
             val all = preferences.all
-            Log.i(Const.TAG, "Preference/不揮発性メモリに格納された変数:$all")
+            Log.i(Const.TAG, "🍙Preference/不揮発性メモリに格納された変数:$all")
             fSavedBeaconMonitoring = (all["fBeaconMonitoring"] as Boolean?) ?: false
-
+        } else {
+            Log.i(Const.TAG, "🍙すでに初期化されています。(fStarted = true)")
+            Log.i(Const.TAG, "🍙fBeaconMonitoring: $fBeaconMonitoring")
         }
         Log.i(Const.TAG, "🍙HappyPathManager#prepare($preferences) DONE")
         return fSavedBeaconMonitoring
@@ -58,6 +60,10 @@ object HappyPathManager : MonitorNotifier, RangeNotifier {
             }
             fBeaconMonitoring = flag
         }
+        (curContext as? MyNativeMsgSender)?.sendNativeMessage(mapOf(
+            "api" to "notify_scan_status",
+            "status" to flag,
+        ))
         Log.i(Const.TAG, "🍙HappyPathManager#fBeaconMonitoringChange($flag) DONE")
     }
 
